@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>TRUPAS - My Status</title>
+  <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    :root {
+      --navy: #16213e;
+      --navy-light: #1a2744;
+      --gold: #c9a96e;
+      --gold-light: #e8d5b0;
+      --ivory: #faf8f5;
+      --text: #2c2c2c;
+      --text-sub: #8a8a8a;
+      --success: #4a7c59;
+      --error: #a04040;
+      --bronze: #cd7f32;
+      --silver: #a0a0a0;
+      --gold-tier: #c9a96e;
+      --platinum: #8c9ead;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', sans-serif;
+      background: var(--navy);
+      min-height: 100vh;
+      padding: 24px 20px;
+    }
+    .brand {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .brand-name {
+      font-size: 13px;
+      letter-spacing: 6px;
+      color: var(--gold);
+      font-weight: 500;
+    }
+    .brand-tagline {
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: rgba(201,169,110,0.5);
+      margin-top: 4px;
+    }
+
+    /* Tier Card */
+    .tier-card {
+      background: #fff;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 360px;
+      margin: 0 auto 20px;
+      overflow: hidden;
+    }
+    .tier-header {
+      background: var(--navy);
+      padding: 28px 24px 20px;
+      text-align: center;
+      border-bottom: 2px solid var(--gold);
+      position: relative;
+    }
+    .tier-badge {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 12px;
+      font-size: 32px;
+      position: relative;
+    }
+    .tier-badge::after {
+      content: '';
+      position: absolute;
+      inset: -3px;
+      border-radius: 50%;
+      border: 2px solid;
+      border-color: inherit;
+    }
+    .tier-badge.bronze { background: rgba(205,127,50,0.15); border-color: var(--bronze); color: var(--bronze); }
+    .tier-badge.silver { background: rgba(160,160,160,0.15); border-color: var(--silver); color: var(--silver); }
+    .tier-badge.gold { background: rgba(201,169,110,0.15); border-color: var(--gold-tier); color: var(--gold-tier); }
+    .tier-badge.platinum { background: rgba(140,158,173,0.15); border-color: var(--platinum); color: var(--platinum); }
+    .tier-name {
+      font-size: 20px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+    }
+    .user-name {
+      font-size: 13px;
+      color: var(--gold-light);
+      margin-top: 6px;
+      letter-spacing: 1px;
+    }
+    .tier-body {
+      padding: 24px;
+    }
+
+    /* Points Section */
+    .points-display {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .points-value {
+      font-size: 48px;
+      font-weight: 700;
+      color: var(--navy);
+      line-height: 1;
+    }
+    .points-label {
+      font-size: 11px;
+      color: var(--text-sub);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    /* Progress Bar */
+    .progress-section {
+      margin-bottom: 20px;
+    }
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--text-sub);
+      margin-bottom: 8px;
+    }
+    .progress-label span:last-child {
+      color: var(--gold);
+      font-weight: 600;
+    }
+    .progress-bar {
+      height: 8px;
+      background: #f0ede8;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 1s ease;
+    }
+    .progress-fill.bronze { background: var(--bronze); }
+    .progress-fill.silver { background: var(--silver); }
+    .progress-fill.gold { background: var(--gold-tier); }
+    .progress-fill.platinum { background: linear-gradient(90deg, var(--platinum), #b8c6d4); }
+
+    /* Stats Row */
+    .stats-row {
+      display: flex;
+      gap: 12px;
+    }
+    .stat-item {
+      flex: 1;
+      background: var(--ivory);
+      border-radius: 12px;
+      padding: 16px 12px;
+      text-align: center;
+    }
+    .stat-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--navy);
+    }
+    .stat-label {
+      font-size: 10px;
+      color: var(--text-sub);
+      letter-spacing: 1px;
+      margin-top: 2px;
+    }
+
+    /* Tier Roadmap */
+    .roadmap-card {
+      background: #fff;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 360px;
+      margin: 0 auto 20px;
+      overflow: hidden;
+    }
+    .roadmap-header {
+      background: var(--navy);
+      padding: 14px 24px;
+      border-bottom: 2px solid var(--gold);
+    }
+    .roadmap-title {
+      font-size: 11px;
+      color: var(--gold);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+    .roadmap-body {
+      padding: 20px 24px;
+    }
+    .roadmap-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 10px 0;
+    }
+    .roadmap-item + .roadmap-item {
+      border-top: 1px solid #f0ede8;
+    }
+    .roadmap-dot {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+    .roadmap-dot.active {
+      border: 2px solid;
+    }
+    .roadmap-dot.locked {
+      background: #f0ede8;
+      opacity: 0.6;
+    }
+    .roadmap-dot.bronze { background: rgba(205,127,50,0.15); border-color: var(--bronze); }
+    .roadmap-dot.silver { background: rgba(160,160,160,0.15); border-color: var(--silver); }
+    .roadmap-dot.gold-t { background: rgba(201,169,110,0.15); border-color: var(--gold-tier); }
+    .roadmap-dot.platinum-t { background: rgba(140,158,173,0.15); border-color: var(--platinum); }
+    .roadmap-info {
+      flex: 1;
+    }
+    .roadmap-tier-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .roadmap-tier-name.current {
+      color: var(--gold);
+    }
+    .roadmap-range {
+      font-size: 11px;
+      color: var(--text-sub);
+      margin-top: 2px;
+    }
+    .roadmap-check {
+      color: var(--success);
+      font-size: 16px;
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      margin-top: 24px;
+      padding-bottom: 20px;
+    }
+    .footer-text {
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: rgba(201,169,110,0.35);
+    }
+
+    /* Loading */
+    .loading-view {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 60vh;
+    }
+    .dot-pulse {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .dot-pulse span {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--gold);
+      animation: pulse 1.2s ease-in-out infinite;
+    }
+    .dot-pulse span:nth-child(2) { animation-delay: 0.2s; }
+    .dot-pulse span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes pulse {
+      0%, 100% { opacity: 0.3; transform: scale(0.8); }
+      50% { opacity: 1; transform: scale(1); }
+    }
+    .loading-text {
+      font-size: 12px;
+      color: var(--gold-light);
+      letter-spacing: 1px;
+    }
+
+    /* Error */
+    .error-view {
+      display: none;
+      text-align: center;
+      padding: 40px 20px;
+    }
+    .error-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+    .error-msg {
+      font-size: 14px;
+      color: var(--gold-light);
+      line-height: 1.7;
+    }
+    .retry-btn {
+      margin-top: 20px;
+      padding: 12px 32px;
+      background: transparent;
+      border: 1px solid var(--gold);
+      color: var(--gold);
+      border-radius: 8px;
+      font-size: 13px;
+      letter-spacing: 1px;
+      cursor: pointer;
+    }
+
+    /* Not Found */
+    .notfound-view {
+      display: none;
+      text-align: center;
+      padding: 40px 20px;
+    }
+    .notfound-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+    .notfound-msg {
+      font-size: 14px;
+      color: var(--gold-light);
+      line-height: 1.7;
+    }
+
+    /* Main Content */
+    .main-content { display: none; }
+
+    /* Animations */
+    .fade-in {
+      animation: fadeIn 0.5s ease forwards;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="brand">
+    <div class="brand-name">TRUPAS</div>
+    <div class="brand-tagline">PRIVILEGE &amp; CONDUCT PROGRAM</div>
+  </div>
+
+  <!-- Loading View -->
+  <div id="loadingView" class="loading-view">
+    <div class="dot-pulse"><span></span><span></span><span></span></div>
+    <div class="loading-text">ステータスを取得しています...</div>
+  </div>
+
+  <!-- Error View -->
+  <div id="errorView" class="error-view">
+    <div class="error-icon">⚠</div>
+    <div class="error-msg" id="errorMsg">データの取得に失敗しました。<br>もう一度お試しください。</div>
+    <button class="retry-btn" onclick="location.reload()">再読み込み</button>
+  </div>
+
+  <!-- Not Found View -->
+  <div id="notfoundView" class="notfound-view">
+    <div class="notfound-icon">🔍</div>
+    <div class="notfound-msg">ステータス情報が見つかりません。<br>チェックインをして最初の訪問を<br>記録しましょう。</div>
+  </div>
+
+  <!-- Main Content -->
+  <div id="mainContent" class="main-content">
+    <!-- Tier Card -->
+    <div class="tier-card fade-in">
+      <div class="tier-header">
+        <div class="tier-badge" id="tierBadge">🛡</div>
+        <div class="tier-name" id="tierName">BRONZE</div>
+        <div class="user-name" id="userName"></div>
+      </div>
+      <div class="tier-body">
+        <div class="points-display">
+          <div class="points-value" id="pointsValue">0</div>
+          <div class="points-label">TRUST POINTS</div>
+        </div>
+        <div class="progress-section">
+          <div class="progress-label">
+            <span id="progressCurrent">Bronze</span>
+            <span id="progressNext">→ Silver (100pt)</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+          </div>
+        </div>
+        <div class="stats-row">
+          <div class="stat-item">
+            <div class="stat-value" id="visitCount">0</div>
+            <div class="stat-label">VISITS</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="avgPoints">0</div>
+            <div class="stat-label">AVG PT/VISIT</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="ledgerCount">0</div>
+            <div class="stat-label">RECORDS</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tier Roadmap -->
+    <div class="roadmap-card fade-in" style="animation-delay: 0.15s">
+      <div class="roadmap-header">
+        <div class="roadmap-title">Tier Roadmap</div>
+      </div>
+      <div class="roadmap-body" id="roadmapBody"></div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="footer-text">TRUPAS — Trust, Recognized and Preserved</div>
+  </div>
+
+  <script>
+    const CONFIG = {
+      LIFF_ID: 'YOUR_LIFF_ID',
+      WEBHOOK_STATUS: 'https://hook.eu1.make.com/utmb89k86th8tih9y370cxc8kwwl8p23'
+    };
+
+    const TIERS = [
+      { name: 'Bronze', min: 0, max: 99, icon: '🛡', cssClass: 'bronze' },
+      { name: 'Silver', min: 100, max: 299, icon: '🛡', cssClass: 'silver' },
+      { name: 'Gold', min: 300, max: 599, icon: '👑', cssClass: 'gold' },
+      { name: 'Platinum', min: 600, max: Infinity, icon: '💎', cssClass: 'platinum' }
+    ];
+
+    function showView(viewId) {
+      ['loadingView', 'errorView', 'notfoundView', 'mainContent'].forEach(id => {
+        document.getElementById(id).style.display = 'none';
+      });
+      document.getElementById(viewId).style.display = viewId === 'mainContent' ? 'block' : 'flex';
+    }
+
+    function getTierInfo(points) {
+      for (let i = TIERS.length - 1; i >= 0; i--) {
+        if (points >= TIERS[i].min) return { ...TIERS[i], index: i };
+      }
+      return { ...TIERS[0], index: 0 };
+    }
+
+    function renderStatus(data) {
+      const user = data.user;
+      const points = user.total_points || 0;
+      const visits = user.visit_count || 0;
+      const tierInfo = getTierInfo(points);
+
+      // Tier badge
+      const badge = document.getElementById('tierBadge');
+      badge.textContent = tierInfo.icon;
+      badge.className = 'tier-badge ' + tierInfo.cssClass;
+
+      // Tier name
+      document.getElementById('tierName').textContent = tierInfo.name.toUpperCase();
+
+      // User name
+      const userName = user.display_name || 'Guest';
+      document.getElementById('userName').textContent = userName;
+
+      // Points
+      animateNumber('pointsValue', points);
+
+      // Stats
+      animateNumber('visitCount', visits);
+      const avg = visits > 0 ? Math.round(points / visits) : 0;
+      animateNumber('avgPoints', avg);
+      animateNumber('ledgerCount', data.ledger_count || 0);
+
+      // Progress bar
+      const nextTier = TIERS[tierInfo.index + 1];
+      document.getElementById('progressCurrent').textContent = tierInfo.name;
+      if (nextTier) {
+        document.getElementById('progressNext').textContent = '→ ' + nextTier.name + ' (' + nextTier.min + 'pt)';
+        const range = nextTier.min - tierInfo.min;
+        const progress = points - tierInfo.min;
+        const pct = Math.min(Math.round((progress / range) * 100), 100);
+        setTimeout(() => {
+          document.getElementById('progressFill').style.width = pct + '%';
+          document.getElementById('progressFill').className = 'progress-fill ' + tierInfo.cssClass;
+        }, 300);
+      } else {
+        document.getElementById('progressNext').textContent = 'MAX TIER ✦';
+        setTimeout(() => {
+          document.getElementById('progressFill').style.width = '100%';
+          document.getElementById('progressFill').className = 'progress-fill ' + tierInfo.cssClass;
+        }, 300);
+      }
+
+      // Roadmap
+      renderRoadmap(tierInfo.index);
+
+      showView('mainContent');
+    }
+
+    function renderRoadmap(currentIndex) {
+      const body = document.getElementById('roadmapBody');
+      body.innerHTML = '';
+      TIERS.forEach((tier, i) => {
+        const item = document.createElement('div');
+        item.className = 'roadmap-item';
+
+        const dotClass = i <= currentIndex
+          ? 'roadmap-dot active ' + (tier.cssClass === 'gold' ? 'gold-t' : tier.cssClass === 'platinum' ? 'platinum-t' : tier.cssClass)
+          : 'roadmap-dot locked';
+
+        const rangeText = tier.max === Infinity
+          ? tier.min + 'pt +'
+          : tier.min + ' - ' + tier.max + 'pt';
+
+        const nameClass = i === currentIndex ? 'roadmap-tier-name current' : 'roadmap-tier-name';
+        const checkMark = i < currentIndex ? '<div class="roadmap-check">✓</div>' : (i === currentIndex ? '<div class="roadmap-check" style="color:var(--gold)">●</div>' : '');
+
+        item.innerHTML = '<div class="' + dotClass + '">' + tier.icon + '</div>' +
+          '<div class="roadmap-info"><div class="' + nameClass + '">' + tier.name + '</div>' +
+          '<div class="roadmap-range">' + rangeText + '</div></div>' + checkMark;
+
+        body.appendChild(item);
+      });
+    }
+
+    function animateNumber(elementId, target) {
+      const el = document.getElementById(elementId);
+      if (target === 0) { el.textContent = '0'; return; }
+      let current = 0;
+      const step = Math.max(1, Math.floor(target / 30));
+      const interval = setInterval(() => {
+        current += step;
+        if (current >= target) {
+          current = target;
+          clearInterval(interval);
+        }
+        el.textContent = current;
+      }, 30);
+    }
+
+    async function init() {
+      try {
+        // Debug mode for localhost
+        const isDebug = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+
+        let lineUid = null;
+
+        if (isDebug) {
+          console.log('[DEBUG] Running in debug mode');
+          lineUid = 'U_debug_user_001';
+          // Show mock data in debug
+          renderStatus({
+            user: { found: true, display_name: 'テストユーザー', tier: 'Silver', total_points: 150, visit_count: 6 },
+            visits_count: 6,
+            ledger_count: 6
+          });
+          return;
+        }
+
+        // LIFF init
+        await liff.init({ liffId: CONFIG.LIFF_ID });
+
+        if (!liff.isLoggedIn()) {
+          liff.login();
+          return;
+        }
+
+        const profile = await liff.getProfile();
+        lineUid = profile.userId;
+
+        // Fetch status from webhook
+        const res = await fetch(CONFIG.WEBHOOK_STATUS, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ line_uid: lineUid })
+        });
+
+        if (!res.ok) throw new Error('Server error: ' + res.status);
+
+        const data = await res.json();
+
+        if (!data.user || !data.user.found) {
+          showView('notfoundView');
+          return;
+        }
+
+        // Use LINE profile name if display_name is generic
+        if (!data.user.display_name || data.user.display_name === 'ゲスト') {
+          data.user.display_name = profile.displayName;
+        }
+
+        renderStatus(data);
+
+      } catch (err) {
+        console.error('Init error:', err);
+        document.getElementById('errorMsg').innerHTML =
+          'データの取得に失敗しました。<br>もう一度お試しください。';
+        showView('errorView');
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>

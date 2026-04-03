@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>TRUPAS - Guest Review</title>
+  <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    :root {
+      --navy: #16213e; --gold: #c9a96e; --gold-light: #e8d5b0; --ivory: #faf8f5;
+      --text: #2c2c2c; --text-sub: #8a8a8a; --success: #4a7c59; --error: #a04040;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', sans-serif;
+      background: var(--navy); min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center;
+      padding: 24px 20px 40px;
+    }
+    .brand { text-align: center; margin-bottom: 20px; }
+    .brand-name { font-size: 13px; letter-spacing: 6px; color: var(--gold); font-weight: 500; }
+    .brand-tagline { font-size: 10px; letter-spacing: 2px; color: rgba(201,169,110,0.5); margin-top: 4px; }
+    .card { background: #fff; border-radius: 16px; width: 100%; max-width: 360px; overflow: hidden; }
+    .card-header {
+      background: var(--navy); padding: 24px 24px 20px; text-align: center;
+      border-bottom: 2px solid var(--gold);
+    }
+    .header-title { font-size: 18px; font-weight: 600; color: #fff; letter-spacing: 1px; }
+    .header-sub { font-size: 11px; color: var(--gold); letter-spacing: 2px; margin-top: 4px; }
+    .card-body { padding: 24px; }
+
+    /* フォーム */
+    .section { margin-bottom: 24px; }
+    .section-title {
+      font-size: 12px; font-weight: 600; color: var(--gold);
+      letter-spacing: 2px; margin-bottom: 14px;
+      text-transform: uppercase;
+    }
+    .medal-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 0;
+      border-bottom: 1px solid #f5f0ea;
+    }
+    .medal-item:last-child { border-bottom: none; }
+    .medal-info { display: flex; align-items: center; gap: 12px; }
+    .medal-badge {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: var(--ivory); border: 1px solid #eee;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+    }
+    .medal-name { font-size: 14px; font-weight: 600; color: var(--text); }
+    .medal-label { font-size: 11px; color: var(--text-sub); margin-top: 2px; }
+
+    /* トグル */
+    .toggle { position: relative; width: 48px; height: 28px; flex-shrink: 0; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle-track {
+      position: absolute; inset: 0; background: #e0e0e0; border-radius: 14px;
+      cursor: pointer; transition: background 0.3s;
+    }
+    .toggle-track::after {
+      content: ''; position: absolute;
+      width: 22px; height: 22px; border-radius: 50%;
+      background: #fff; top: 3px; left: 3px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+      transition: transform 0.3s;
+    }
+    .toggle input:checked + .toggle-track { background: var(--gold); }
+    .toggle input:checked + .toggle-track::after { transform: translateX(20px); }
+
+    /* セレクト */
+    .select-wrap {
+      position: relative;
+    }
+    .select-wrap select {
+      width: 100%; padding: 12px 40px 12px 14px;
+      border: 1px solid #e8e3db; border-radius: 8px;
+      font-size: 14px; color: var(--text);
+      background: var(--ivory);
+      appearance: none; cursor: pointer;
+      font-family: inherit;
+    }
+    .select-wrap::after {
+      content: '▾'; position: absolute; right: 14px; top: 50%;
+      transform: translateY(-50%); color: var(--text-sub); pointer-events: none;
+    }
+
+    /* テキストエリア */
+    textarea {
+      width: 100%; padding: 12px 14px;
+      border: 1px solid #e8e3db; border-radius: 8px;
+      font-size: 14px; color: var(--text); resize: vertical;
+      min-height: 80px; background: var(--ivory);
+      font-family: inherit; line-height: 1.6;
+    }
+    textarea::placeholder { color: #c0b8a8; }
+    textarea:focus, .select-wrap select:focus {
+      outline: none; border-color: var(--gold);
+    }
+
+    .char-count { text-align: right; font-size: 11px; color: var(--text-sub); margin-top: 4px; }
+
+    .btn {
+      display: block; width: 100%; padding: 15px; border: none; border-radius: 8px;
+      font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; letter-spacing: 1px;
+    }
+    .btn-gold { background: var(--gold); color: var(--navy); }
+    .btn-gold:active { background: #b8984f; }
+    .btn-gold:disabled { background: #ddd; color: #aaa; cursor: not-allowed; }
+    .btn-outline {
+      background: transparent; color: var(--text-sub); border: 1px solid #e0e0e0;
+      margin-top: 10px; font-weight: 400; font-size: 13px;
+    }
+
+    .view { display: none; }
+    .view.active { display: block; }
+    .result-icon {
+      width: 56px; height: 56px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 16px; font-size: 24px;
+    }
+    .result-icon.success { background: rgba(74,124,89,0.1); color: var(--success); }
+    .result-icon.error { background: rgba(160,64,64,0.1); color: var(--error); }
+    .result-title { font-size: 17px; font-weight: 600; color: var(--text); margin-bottom: 8px; text-align: center; }
+    .result-detail { font-size: 13px; color: var(--text-sub); line-height: 1.7; text-align: center; }
+    .divider { width: 40px; height: 1px; background: var(--gold-light); margin: 20px auto; }
+    .loading { display: none; align-items: center; justify-content: center; gap: 10px; padding: 12px 0; }
+    .loading.show { display: flex; }
+    .dot-pulse { display: flex; gap: 6px; }
+    .dot-pulse span {
+      width: 6px; height: 6px; background: var(--gold); border-radius: 50%;
+      animation: pulse 1.2s ease-in-out infinite;
+    }
+    .dot-pulse span:nth-child(2) { animation-delay: 0.2s; }
+    .dot-pulse span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes pulse {
+      0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
+      40% { opacity: 1; transform: scale(1); }
+    }
+    .inline-error { display: none; font-size: 13px; color: var(--error); margin-top: 12px; text-align: center; }
+    .inline-error.show { display: block; }
+    .footer { margin-top: 20px; font-size: 10px; color: rgba(255,255,255,0.25); letter-spacing: 1px; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="brand">
+    <div class="brand-name">TRUPAS</div>
+    <div class="brand-tagline">STAFF REVIEW</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="header-title">ゲストレビュー</div>
+      <div class="header-sub">GUEST CONDUCT EVALUATION</div>
+    </div>
+
+    <div class="card-body">
+      <!-- レビューフォーム -->
+      <div class="view active" id="view-form">
+        <div class="section">
+          <div class="section-title">Conduct</div>
+          <div class="medal-item">
+            <div class="medal-info">
+              <div class="medal-badge">🤝</div>
+              <div><div class="medal-name">Courteous</div><div class="medal-label">礼節</div></div>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="courteous" checked>
+              <span class="toggle-track"></span>
+            </label>
+          </div>
+          <div class="medal-item">
+            <div class="medal-info">
+              <div class="medal-badge">💐</div>
+              <div><div class="medal-name">Considerate</div><div class="medal-label">配慮</div></div>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="considerate" checked>
+              <span class="toggle-track"></span>
+            </label>
+          </div>
+          <div class="medal-item">
+            <div class="medal-info">
+              <div class="medal-badge">⏱</div>
+              <div><div class="medal-name">Punctual</div><div class="medal-label">時間厳守</div></div>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="punctual" checked>
+              <span class="toggle-track"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Stewardship</div>
+          <div class="select-wrap">
+            <select id="cleaning">
+              <option value="OK">OK - 整然としていた</option>
+              <option value="NG">NG - 改善が必要</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Comment</div>
+          <textarea id="staff-comment" placeholder="ゲストについてのコメント（任意）" maxlength="200"></textarea>
+          <div class="char-count"><span id="char-count">0</span> / 200</div>
+        </div>
+
+        <button class="btn btn-gold" id="submit-btn" onclick="doSubmit()">
+          レビューを送信
+        </button>
+        <div class="loading" id="loading">
+          <div class="dot-pulse"><span></span><span></span><span></span></div>
+        </div>
+        <div class="inline-error" id="inline-error"></div>
+      </div>
+
+      <!-- 成功 -->
+      <div class="view" id="view-success">
+        <div class="result-icon success">&#10003;</div>
+        <div class="result-title">レビュー送信完了</div>
+        <div class="divider"></div>
+        <div class="result-detail">
+          ゲストレビューを受け付けました。<br>
+          AI判定後、ゲストに結果が通知されます。
+        </div>
+        <button class="btn btn-outline" onclick="closeLiff()" style="margin-top:24px;">閉じる</button>
+      </div>
+
+      <!-- エラー -->
+      <div class="view" id="view-error">
+        <div class="result-icon error">!</div>
+        <div class="result-title" id="error-title">エラー</div>
+        <div class="divider"></div>
+        <div class="result-detail" id="error-detail"></div>
+        <button class="btn btn-outline" onclick="closeLiff()" style="margin-top:24px;">閉じる</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">TRUPAS &mdash; Trust, Recognized and Preserved</div>
+
+  <script>
+    const CONFIG = {
+      LIFF_ID: 'YOUR_LIFF_ID',
+      WEBHOOK_REVIEW: 'https://hook.eu1.make.com/us5gsclkvxko9xcexlp1etbea3ixln9r'
+    };
+
+    let visitId = '';
+
+    async function initApp() {
+      const params = new URLSearchParams(window.location.search);
+      visitId = params.get('visit_id') || '';
+
+      if (!visitId) {
+        switchView('view-error');
+        document.getElementById('error-title').textContent = '無効なリンク';
+        document.getElementById('error-detail').textContent = 'レビュー対象のvisit情報がありません。チェックアウト後に表示されるリンクからアクセスしてください。';
+        return;
+      }
+
+      // LIFF初期化（加盟店スタッフ用なのでログイン不要でも動作可能にする）
+      try {
+        await liff.init({ liffId: CONFIG.LIFF_ID });
+      } catch (e) {
+        console.warn('LIFF init failed (non-critical for review):', e.message);
+      }
+
+      // 文字数カウント
+      document.getElementById('staff-comment').addEventListener('input', function() {
+        document.getElementById('char-count').textContent = this.value.length;
+      });
+    }
+
+    async function doSubmit() {
+      const btn = document.getElementById('submit-btn');
+      btn.disabled = true;
+      document.getElementById('loading').classList.add('show');
+
+      const payload = {
+        visit_id: visitId,
+        courteous: document.getElementById('courteous').checked,
+        considerate: document.getElementById('considerate').checked,
+        punctual: document.getElementById('punctual').checked,
+        cleaning: document.getElementById('cleaning').value,
+        staff_comment: document.getElementById('staff-comment').value.trim()
+      };
+
+      try {
+        const res = await fetch(CONFIG.WEBHOOK_REVIEW, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          switchView('view-success');
+        } else {
+          switchView('view-error');
+          document.getElementById('error-title').textContent = '送信失敗';
+          document.getElementById('error-detail').textContent = data.message || '処理に失敗しました。';
+        }
+      } catch (e) {
+        showInlineError('通信エラーが発生しました。再度お試しください。');
+        btn.disabled = false;
+      } finally {
+        document.getElementById('loading').classList.remove('show');
+      }
+    }
+
+    function switchView(id) {
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    }
+
+    function showInlineError(msg) {
+      const el = document.getElementById('inline-error');
+      el.textContent = msg; el.classList.add('show');
+      setTimeout(() => el.classList.remove('show'), 5000);
+    }
+
+    function closeLiff() {
+      if (typeof liff !== 'undefined' && liff.isInClient && liff.isInClient()) { liff.closeWindow(); }
+      else { window.close(); }
+    }
+
+    initApp();
+  </script>
+</body>
+</html>

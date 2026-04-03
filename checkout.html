@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>TRUPAS - Check Out</title>
+  <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    :root {
+      --navy: #16213e; --gold: #c9a96e; --gold-light: #e8d5b0; --ivory: #faf8f5;
+      --text: #2c2c2c; --text-sub: #8a8a8a; --success: #4a7c59; --error: #a04040;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', sans-serif;
+      background: var(--navy); min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 24px 20px;
+    }
+    .brand { text-align: center; margin-bottom: 28px; }
+    .brand-name { font-size: 13px; letter-spacing: 6px; color: var(--gold); font-weight: 500; }
+    .brand-tagline { font-size: 10px; letter-spacing: 2px; color: rgba(201,169,110,0.5); margin-top: 4px; }
+    .card { background: #fff; border-radius: 16px; width: 100%; max-width: 360px; overflow: hidden; }
+    .card-header {
+      background: var(--navy); padding: 28px 24px 24px; text-align: center;
+      border-bottom: 2px solid var(--gold);
+    }
+    .header-icon {
+      width: 56px; height: 56px; border-radius: 50%; border: 2px solid var(--gold);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 12px; font-size: 24px; background: rgba(201,169,110,0.1);
+    }
+    .header-title { font-size: 18px; font-weight: 600; color: #fff; letter-spacing: 1px; }
+    .header-sub { font-size: 11px; color: var(--gold); letter-spacing: 2px; margin-top: 4px; }
+    .card-body { padding: 28px 24px 32px; text-align: center; }
+    .message { color: var(--text-sub); font-size: 14px; line-height: 1.8; margin-bottom: 28px; }
+    .visit-info {
+      background: var(--ivory); border-radius: 10px; padding: 16px; margin-bottom: 24px;
+      border: 1px solid #f0ebe3;
+    }
+    .visit-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; }
+    .visit-label { font-size: 12px; color: var(--text-sub); }
+    .visit-value { font-size: 14px; color: var(--text); font-weight: 500; }
+    .btn {
+      display: block; width: 100%; padding: 15px; border: none; border-radius: 8px;
+      font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; letter-spacing: 1px;
+    }
+    .btn-gold { background: var(--gold); color: var(--navy); }
+    .btn-gold:active { background: #b8984f; }
+    .btn-gold:disabled { background: #ddd; color: #aaa; cursor: not-allowed; }
+    .btn-outline {
+      background: transparent; color: var(--text-sub); border: 1px solid #e0e0e0;
+      margin-top: 10px; font-weight: 400; font-size: 13px;
+    }
+    .view { display: none; }
+    .view.active { display: block; }
+    .result-icon {
+      width: 56px; height: 56px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 16px; font-size: 24px;
+    }
+    .result-icon.success { background: rgba(74,124,89,0.1); color: var(--success); }
+    .result-icon.error { background: rgba(160,64,64,0.1); color: var(--error); }
+    .result-title { font-size: 17px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
+    .result-detail { font-size: 13px; color: var(--text-sub); line-height: 1.7; }
+    .divider { width: 40px; height: 1px; background: var(--gold-light); margin: 20px auto; }
+    .loading { display: none; align-items: center; justify-content: center; gap: 10px; padding: 12px 0; }
+    .loading.show { display: flex; }
+    .dot-pulse { display: flex; gap: 6px; }
+    .dot-pulse span {
+      width: 6px; height: 6px; background: var(--gold); border-radius: 50%;
+      animation: pulse 1.2s ease-in-out infinite;
+    }
+    .dot-pulse span:nth-child(2) { animation-delay: 0.2s; }
+    .dot-pulse span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes pulse {
+      0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
+      40% { opacity: 1; transform: scale(1); }
+    }
+    .inline-error { display: none; font-size: 13px; color: var(--error); margin-top: 12px; }
+    .inline-error.show { display: block; }
+    .footer { margin-top: 20px; font-size: 10px; color: rgba(255,255,255,0.25); letter-spacing: 1px; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="brand">
+    <div class="brand-name">TRUPAS</div>
+    <div class="brand-tagline">PRIVILEGE & CONDUCT PROGRAM</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="header-icon">🚪</div>
+      <div class="header-title">チェックアウト</div>
+      <div class="header-sub">CHECK OUT</div>
+    </div>
+
+    <div class="card-body">
+      <!-- 滞在情報表示 + チェックアウトボタン -->
+      <div class="view active" id="view-checkout">
+        <p class="message" id="checkout-msg">滞在情報を確認しています...</p>
+        <div class="visit-info" id="visit-info" style="display:none;">
+          <div class="visit-row">
+            <span class="visit-label">施設</span>
+            <span class="visit-value" id="info-store">---</span>
+          </div>
+          <div class="visit-row">
+            <span class="visit-label">チェックイン</span>
+            <span class="visit-value" id="info-time">---</span>
+          </div>
+        </div>
+        <button class="btn btn-gold" id="checkout-btn" style="display:none;" onclick="doCheckout()">
+          チェックアウト
+        </button>
+        <div class="loading" id="loading">
+          <div class="dot-pulse"><span></span><span></span><span></span></div>
+        </div>
+        <div class="inline-error" id="inline-error"></div>
+      </div>
+
+      <!-- 成功 -->
+      <div class="view" id="view-success">
+        <div class="result-icon success">&#10003;</div>
+        <div class="result-title">チェックアウト完了</div>
+        <div class="divider"></div>
+        <div class="result-detail" id="success-detail">
+          ご利用ありがとうございました。<br>
+          またのお越しをお待ちしております。
+        </div>
+        <button class="btn btn-outline" onclick="closeLiff()" style="margin-top:24px;">閉じる</button>
+      </div>
+
+      <!-- 滞在なし -->
+      <div class="view" id="view-empty">
+        <div class="result-icon error" style="background:rgba(138,138,138,0.1);color:var(--text-sub);">―</div>
+        <div class="result-title">滞在中の記録がありません</div>
+        <div class="divider"></div>
+        <div class="result-detail">
+          現在チェックイン中の記録が見つかりませんでした。<br>
+          店舗のQRコードからチェックインしてください。
+        </div>
+        <button class="btn btn-outline" onclick="closeLiff()" style="margin-top:24px;">閉じる</button>
+      </div>
+
+      <!-- エラー -->
+      <div class="view" id="view-error">
+        <div class="result-icon error">!</div>
+        <div class="result-title" id="error-title">エラー</div>
+        <div class="divider"></div>
+        <div class="result-detail" id="error-detail"></div>
+        <button class="btn btn-outline" onclick="closeLiff()" style="margin-top:24px;">閉じる</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">TRUPAS &mdash; Trust, Recognized and Preserved</div>
+
+  <script>
+    const CONFIG = {
+      LIFF_ID: 'YOUR_LIFF_ID',
+      WEBHOOK_CHECKOUT: 'https://hook.eu1.make.com/mnkxom3ckvsgo8ibpduay1t6qy0hl1rs'
+    };
+
+    let userProfile = null;
+    let currentVisitId = '';
+
+    async function initApp() {
+      try {
+        await liff.init({ liffId: CONFIG.LIFF_ID });
+        if (!liff.isLoggedIn()) { liff.login({ redirectUri: window.location.href }); return; }
+        userProfile = await liff.getProfile();
+      } catch (e) {
+        console.warn('LIFF init failed:', e.message);
+        if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+          userProfile = { userId: 'U_debug_user_001', displayName: 'Debug' };
+        } else {
+          switchView('view-error');
+          document.getElementById('error-title').textContent = '初期化エラー';
+          document.getElementById('error-detail').textContent = 'LINEアプリ内で開いてください。';
+          return;
+        }
+      }
+
+      // URLパラメータにvisit_idがあればそれを使用、なければ検索が必要
+      const params = new URLSearchParams(window.location.search);
+      currentVisitId = params.get('visit_id') || '';
+
+      if (currentVisitId) {
+        // visit_idが渡されている場合は直接表示
+        const storeName = decodeURIComponent(params.get('store_name') || '---');
+        document.getElementById('info-store').textContent = storeName;
+        document.getElementById('info-time').textContent = '本日';
+        document.getElementById('visit-info').style.display = 'block';
+        document.getElementById('checkout-btn').style.display = 'block';
+        document.getElementById('checkout-msg').textContent = '以下の滞在をチェックアウトしますか？';
+      } else {
+        // visit_idなし：リッチメニューから開いた場合
+        // 現在の実装ではvisit_idが必要なので案内表示
+        switchView('view-empty');
+      }
+    }
+
+    async function doCheckout() {
+      const btn = document.getElementById('checkout-btn');
+      btn.disabled = true;
+      document.getElementById('loading').classList.add('show');
+
+      try {
+        const res = await fetch(CONFIG.WEBHOOK_CHECKOUT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ visit_id: currentVisitId })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          switchView('view-success');
+        } else {
+          switchView('view-error');
+          document.getElementById('error-title').textContent = 'チェックアウト失敗';
+          document.getElementById('error-detail').textContent = data.message || '処理に失敗しました。';
+        }
+      } catch (e) {
+        showInlineError('通信エラーが発生しました。再度お試しください。');
+        btn.disabled = false;
+      } finally {
+        document.getElementById('loading').classList.remove('show');
+      }
+    }
+
+    function switchView(id) {
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    }
+
+    function showInlineError(msg) {
+      const el = document.getElementById('inline-error');
+      el.textContent = msg; el.classList.add('show');
+      setTimeout(() => el.classList.remove('show'), 5000);
+    }
+
+    function closeLiff() {
+      if (typeof liff !== 'undefined' && liff.isInClient && liff.isInClient()) { liff.closeWindow(); }
+      else { window.close(); }
+    }
+
+    initApp();
+  </script>
+</body>
+</html>

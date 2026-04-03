@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TRUPAS - QR Code Generator</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    :root {
+      --navy: #16213e;
+      --navy-light: #1a2744;
+      --gold: #c9a96e;
+      --gold-light: #e8d5b0;
+      --ivory: #faf8f5;
+      --text: #2c2c2c;
+      --text-sub: #8a8a8a;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', sans-serif;
+      background: var(--ivory);
+      min-height: 100vh;
+      padding: 24px 20px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .header-brand {
+      font-size: 12px;
+      letter-spacing: 5px;
+      color: var(--gold);
+      font-weight: 600;
+    }
+    .header-title {
+      font-size: 20px;
+      color: var(--navy);
+      font-weight: 700;
+      margin-top: 8px;
+    }
+    .header-sub {
+      font-size: 12px;
+      color: var(--text-sub);
+      margin-top: 4px;
+    }
+
+    .form-card {
+      background: #fff;
+      border-radius: 16px;
+      max-width: 480px;
+      margin: 0 auto 24px;
+      padding: 28px 24px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    .form-label {
+      display: block;
+      font-size: 12px;
+      color: var(--text-sub);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+    .form-input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid #e0dcd6;
+      border-radius: 8px;
+      font-size: 15px;
+      color: var(--text);
+      background: var(--ivory);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-input:focus {
+      border-color: var(--gold);
+    }
+    .form-hint {
+      font-size: 11px;
+      color: var(--text-sub);
+      margin-top: 6px;
+    }
+    .form-note {
+      background: rgba(201,169,110,0.1);
+      border-left: 3px solid var(--gold);
+      padding: 12px 16px;
+      border-radius: 0 8px 8px 0;
+      margin-bottom: 20px;
+    }
+    .form-note p {
+      font-size: 12px;
+      color: var(--text);
+      line-height: 1.6;
+    }
+    .btn-generate {
+      width: 100%;
+      padding: 14px;
+      background: var(--navy);
+      color: var(--gold);
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .btn-generate:hover { opacity: 0.9; }
+    .btn-generate:active { transform: scale(0.99); }
+
+    /* QR Output */
+    .qr-output {
+      display: none;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    /* Printable QR Card */
+    .qr-card {
+      background: #fff;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      margin-bottom: 16px;
+    }
+    .qr-card-header {
+      background: var(--navy);
+      padding: 20px 24px;
+      text-align: center;
+      border-bottom: 2px solid var(--gold);
+    }
+    .qr-brand {
+      font-size: 11px;
+      letter-spacing: 5px;
+      color: var(--gold);
+      font-weight: 500;
+    }
+    .qr-store-name {
+      font-size: 22px;
+      font-weight: 700;
+      color: #fff;
+      margin-top: 8px;
+      letter-spacing: 1px;
+    }
+    .qr-store-en {
+      font-size: 11px;
+      color: var(--gold-light);
+      letter-spacing: 2px;
+      margin-top: 4px;
+    }
+    .qr-card-body {
+      padding: 32px 24px;
+      text-align: center;
+    }
+    .qr-container {
+      display: inline-block;
+      padding: 16px;
+      background: #fff;
+      border: 2px solid var(--gold);
+      border-radius: 12px;
+      margin-bottom: 16px;
+    }
+    .qr-instruction {
+      font-size: 16px;
+      color: var(--navy);
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .qr-instruction-sub {
+      font-size: 12px;
+      color: var(--text-sub);
+    }
+    .qr-card-footer {
+      background: var(--navy);
+      padding: 12px;
+      text-align: center;
+    }
+    .qr-footer-text {
+      font-size: 9px;
+      letter-spacing: 2px;
+      color: rgba(201,169,110,0.5);
+    }
+
+    /* URL Display */
+    .url-display {
+      background: #fff;
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      margin-bottom: 16px;
+    }
+    .url-label {
+      font-size: 11px;
+      color: var(--text-sub);
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+    .url-text {
+      font-size: 12px;
+      color: var(--navy);
+      word-break: break-all;
+      background: var(--ivory);
+      padding: 10px 12px;
+      border-radius: 6px;
+      font-family: monospace;
+      line-height: 1.5;
+    }
+
+    /* Actions */
+    .actions {
+      display: flex;
+      gap: 12px;
+    }
+    .btn-action {
+      flex: 1;
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      letter-spacing: 1px;
+      transition: opacity 0.2s;
+      border: none;
+    }
+    .btn-print {
+      background: var(--navy);
+      color: var(--gold);
+    }
+    .btn-copy {
+      background: transparent;
+      border: 1px solid var(--navy) !important;
+      color: var(--navy);
+    }
+    .btn-action:hover { opacity: 0.85; }
+
+    .copy-toast {
+      display: none;
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--navy);
+      color: var(--gold);
+      padding: 10px 24px;
+      border-radius: 8px;
+      font-size: 13px;
+      z-index: 100;
+    }
+
+    @media print {
+      body { background: #fff; padding: 0; }
+      .form-card, .url-display, .actions, .header, .copy-toast { display: none !important; }
+      .qr-output { display: block !important; }
+      .qr-card { box-shadow: none; border: 1px solid #ddd; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="header-brand">TRUPAS</div>
+    <div class="header-title">QR Code Generator</div>
+    <div class="header-sub">チェックイン用QRコードを生成します</div>
+  </div>
+
+  <div class="form-card">
+    <div class="form-note">
+      <p>LIFF IDが設定されるまでは、プレースホルダーURLでQRコードが生成されます。LIFF登録後にLIFF IDを入力して再生成してください。</p>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">LIFF ID (チェックイン用)</label>
+      <input type="text" id="liffId" class="form-input" placeholder="例: 1234567890-abcdefgh" value="">
+      <div class="form-hint">LINE Developers ConsoleでLIFFアプリ作成後に取得</div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Store ID</label>
+      <input type="text" id="storeId" class="form-input" placeholder="例: store_maruki_saifuku" value="store_maruki_saifuku">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">店舗名（日本語）</label>
+      <input type="text" id="storeName" class="form-input" placeholder="例: MARUKI齋福" value="MARUKI齋福">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">店舗名（英語）</label>
+      <input type="text" id="storeNameEn" class="form-input" placeholder="例: MARUKI Saifuku" value="MARUKI Saifuku">
+    </div>
+
+    <button class="btn-generate" onclick="generateQR()">QR CODE を生成</button>
+  </div>
+
+  <div class="qr-output" id="qrOutput">
+    <div class="qr-card" id="qrCard">
+      <div class="qr-card-header">
+        <div class="qr-brand">TRUPAS</div>
+        <div class="qr-store-name" id="qrStoreName"></div>
+        <div class="qr-store-en" id="qrStoreEn"></div>
+      </div>
+      <div class="qr-card-body">
+        <div class="qr-container" id="qrContainer"></div>
+        <div class="qr-instruction">LINEでスキャン</div>
+        <div class="qr-instruction-sub">Scan with LINE to check in</div>
+      </div>
+      <div class="qr-card-footer">
+        <div class="qr-footer-text">TRUPAS — PRIVILEGE &amp; CONDUCT PROGRAM</div>
+      </div>
+    </div>
+
+    <div class="url-display">
+      <div class="url-label">CHECKIN URL</div>
+      <div class="url-text" id="urlText"></div>
+    </div>
+
+    <div class="actions">
+      <button class="btn-action btn-print" onclick="window.print()">印刷する</button>
+      <button class="btn-action btn-copy" onclick="copyUrl()">URLをコピー</button>
+    </div>
+  </div>
+
+  <div class="copy-toast" id="copyToast">URLをコピーしました</div>
+
+  <script>
+    let qrInstance = null;
+
+    function generateQR() {
+      const liffId = document.getElementById('liffId').value.trim();
+      const storeId = document.getElementById('storeId').value.trim();
+      const storeName = document.getElementById('storeName').value.trim();
+      const storeNameEn = document.getElementById('storeNameEn').value.trim();
+
+      if (!storeId || !storeName) {
+        alert('Store ID と店舗名を入力してください');
+        return;
+      }
+
+      // Build URL
+      let checkinUrl;
+      if (liffId) {
+        checkinUrl = 'https://liff.line.me/' + liffId + '?store_id=' + encodeURIComponent(storeId) + '&store_name=' + encodeURIComponent(storeName);
+      } else {
+        // Placeholder URL for pre-LIFF setup
+        checkinUrl = 'https://YOUR_GITHUB_PAGES/checkin.html?store_id=' + encodeURIComponent(storeId) + '&store_name=' + encodeURIComponent(storeName);
+      }
+
+      // Update display
+      document.getElementById('qrStoreName').textContent = storeName;
+      document.getElementById('qrStoreEn').textContent = storeNameEn || '';
+      document.getElementById('urlText').textContent = checkinUrl;
+
+      // Generate QR
+      const container = document.getElementById('qrContainer');
+      container.innerHTML = '';
+      qrInstance = new QRCode(container, {
+        text: checkinUrl,
+        width: 200,
+        height: 200,
+        colorDark: '#16213e',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.M
+      });
+
+      // Show output
+      document.getElementById('qrOutput').style.display = 'block';
+
+      // Smooth scroll to QR
+      setTimeout(() => {
+        document.getElementById('qrOutput').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    }
+
+    function copyUrl() {
+      const url = document.getElementById('urlText').textContent;
+      navigator.clipboard.writeText(url).then(() => {
+        const toast = document.getElementById('copyToast');
+        toast.style.display = 'block';
+        setTimeout(() => { toast.style.display = 'none'; }, 2000);
+      });
+    }
+  </script>
+</body>
+</html>
