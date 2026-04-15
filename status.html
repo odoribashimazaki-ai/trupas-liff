@@ -141,8 +141,7 @@
     .medals-title {
       font-size: 11px;
       color: var(--gold);
-      letter-spacing: 2px;
-      text-transform: uppercase;
+      letter-spacing: 1px;
       font-weight: 600;
     }
     .medals-body {
@@ -157,12 +156,13 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 8px 14px;
+      padding: 8px 12px;
       background: var(--ivory);
       border-radius: 20px;
-      font-size: 13px;
+      font-size: 12px;
       color: var(--navy);
       font-weight: 500;
+      line-height: 1.4;
     }
     .medal-tag .medal-icon {
       font-size: 16px;
@@ -191,8 +191,7 @@
     .roadmap-title {
       font-size: 11px;
       color: var(--gold);
-      letter-spacing: 2px;
-      text-transform: uppercase;
+      letter-spacing: 1px;
       font-weight: 600;
     }
     .roadmap-body {
@@ -393,7 +392,7 @@
     <!-- Medals Card -->
     <div class="medals-card fade-in" style="animation-delay: 0.1s">
       <div class="medals-header">
-        <div class="medals-title">Earned Medals</div>
+        <div class="medals-title">獲得メダル / EARNED MEDALS</div>
       </div>
       <div class="medals-body">
         <div class="medals-grid" id="medalsGrid"></div>
@@ -403,7 +402,7 @@
     <!-- Tier Roadmap -->
     <div class="roadmap-card fade-in" style="animation-delay: 0.2s">
       <div class="roadmap-header">
-        <div class="roadmap-title">Tier Roadmap</div>
+        <div class="roadmap-title">ステータスの道のり / TIER ROADMAP</div>
       </div>
       <div class="roadmap-body" id="roadmapBody"></div>
     </div>
@@ -426,22 +425,22 @@
       { name: 'Platinum', icon: '\u{1F48E}', cssClass: 'platinum' }
     ];
 
-    const MEDAL_ICONS = {
-      'Courteous': '\u{1F64F}',
-      'Considerate': '\u{1F49B}',
-      'Punctual': '\u{23F0}',
-      'Pristine': '\u{2728}',
-      'Gentle': '\u{1F338}',
-      'Selfless': '\u{1F91D}',
-      'Gracious': '\u{1F31F}',
-      'Inclusive': '\u{1F30D}',
-      'Reliable': '\u{1F3AF}',
-      'Transparent': '\u{1F4A0}',
-      'Consistent': '\u{1F4C8}',
-      'Accountable': '\u{2705}',
-      'Attentive': '\u{1F441}',
-      'Empathetic': '\u{1F49C}',
-      'Nurturing': '\u{1F331}'
+    const MEDAL_DATA = {
+      'Courteous':   { icon: '\u{1F64F}', ja: '礼儀正しい' },
+      'Considerate': { icon: '\u{1F49B}', ja: '思いやり' },
+      'Punctual':    { icon: '\u{23F0}',  ja: '時間厳守' },
+      'Pristine':    { icon: '\u{2728}',  ja: '清潔' },
+      'Gentle':      { icon: '\u{1F338}', ja: '穏やか' },
+      'Selfless':    { icon: '\u{1F91D}', ja: '無私の心' },
+      'Gracious':    { icon: '\u{1F31F}', ja: '寛大' },
+      'Inclusive':    { icon: '\u{1F30D}', ja: '包容力' },
+      'Reliable':    { icon: '\u{1F3AF}', ja: '信頼できる' },
+      'Transparent': { icon: '\u{1F4A0}', ja: '誠実' },
+      'Consistent':  { icon: '\u{1F4C8}', ja: '一貫性' },
+      'Accountable': { icon: '\u{2705}',  ja: '責任感' },
+      'Attentive':   { icon: '\u{1F441}', ja: '気配り' },
+      'Empathetic':  { icon: '\u{1F49C}', ja: '共感力' },
+      'Nurturing':   { icon: '\u{1F331}', ja: '育む心' }
     };
 
     function showView(viewId) {
@@ -501,8 +500,8 @@
       medals.forEach(function(medal) {
         var tag = document.createElement('div');
         tag.className = 'medal-tag';
-        var icon = MEDAL_ICONS[medal] || '\u{1F3C5}';
-        tag.innerHTML = '<span class="medal-icon">' + icon + '</span>' + medal;
+        var data = MEDAL_DATA[medal] || { icon: '\u{1F3C5}', ja: medal };
+        tag.innerHTML = '<span class="medal-icon">' + data.icon + '</span>' + data.ja + ' / ' + medal;
         grid.appendChild(tag);
       });
     }
