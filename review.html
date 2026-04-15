@@ -153,6 +153,14 @@
     .inline-error { display: none; font-size: 13px; color: var(--error); margin-top: 12px; text-align: center; }
     .inline-error.show { display: block; }
     .footer { margin-top: 20px; font-size: 10px; color: rgba(255,255,255,0.25); letter-spacing: 1px; text-align: center; }
+    .auth-mode-badge {
+      display: none; text-align: center; margin-bottom: 12px;
+      font-size: 10px; color: rgba(201,169,110,0.6); letter-spacing: 1px;
+    }
+    .auth-mode-badge span {
+      display: inline-block; padding: 3px 10px;
+      border: 1px solid rgba(201,169,110,0.3); border-radius: 10px;
+    }
   </style>
 </head>
 <body>
@@ -160,6 +168,8 @@
     <div class="brand-name">TRUPAS</div>
     <div class="brand-tagline">STAFF REVIEW</div>
   </div>
+
+  <div class="auth-mode-badge" id="auth-mode-badge"><span>PC / Web Mode</span></div>
 
   <div class="card">
     <div class="card-header">
@@ -277,33 +287,54 @@
     };
 
     let visitId = '';
+    let authMode = 'liff';   // 'liff' or 'token'
+    let storeId = '';
+    let staffToken = '';
 
     async function initApp() {
-      // LIFF初期化を先に行う（LINE内ブラウザではinit後にクエリパラメータが反映される）
-      try {
-        await liff.init({ liffId: CONFIG.LIFF_ID });
-      } catch (e) {
-        console.warn('LIFF init failed (non-critical for review):', e.message);
+      // URLパラメータを先に読む（staff_token認証かLIFF認証かを判定）
+      const params = new URLSearchParams(window.location.search);
+      storeId = params.get('store_id') || '';
+      staffToken = params.get('token') || '';
+
+      if (storeId && staffToken) {
+        // ── PC/Web モード: staff_token認証（LIFFなし） ──
+        authMode = 'token';
+        visitId = params.get('visit_id') || '';
+      } else {
+        // ── LINE モード: LIFF認証 ──
+        authMode = 'liff';
+        try {
+          await liff.init({ liffId: CONFIG.LIFF_ID });
+        } catch (e) {
+          console.warn('LIFF init failed:', e.message);
+        }
+        // LIFF init後にURLパラメータを再読み取り（LINE内ブラウザでは遅延反映）
+        const liffParams = new URLSearchParams(window.location.search);
+        visitId = liffParams.get('visit_id') || '';
+        storeId = liffParams.get('store_id') || '';
       }
 
-      // init完了後にURLパラメータを読み取る
-      const params = new URLSearchParams(window.location.search);
-      visitId = params.get('visit_id') || '';
-
       if (!visitId) {
+        // visit_idがない場合、token認証モードならvisit選択画面ではなくエラー表示
         switchView('view-error');
         document.getElementById('error-title').textContent = '無効なリンク';
         document.getElementById('error-detail').textContent = 'レビュー対象のvisit情報がありません。チェックアウト後に表示されるリンクからアクセスしてください。';
         return;
       }
 
-      // visit_idからroom_idを抽出して表示（通知メッセージに部屋番号が含まれているので参考表示）
+      // 対象ゲスト情報の表示
       var roomParam = params.get('room_id') || '';
       var storeParam = decodeURIComponent(params.get('store_name') || '');
       if (roomParam || storeParam) {
         document.getElementById('badge-room').textContent = (roomParam ? roomParam + '号室' : '') + (storeParam ? ' ' + storeParam : '');
         document.getElementById('badge-date').textContent = '本日チェックアウト';
         document.getElementById('visit-badge').style.display = 'flex';
+      }
+
+      // PC/Webモード表示
+      if (authMode === 'token') {
+        document.getElementById('auth-mode-badge').style.display = 'block';
       }
 
       // 文字数カウント
@@ -325,6 +356,16 @@
         cleaning: document.getElementById('cleaning').value,
         staff_comment: document.getElementById('staff-comment').value.trim()
       };
+
+      // staff_token認証モードの場合、認証情報を付加
+      if (authMode === 'token') {
+        payload.auth_mode = 'token';
+        payload.store_id = storeId;
+        payload.staff_token = staffToken;
+      } else {
+        payload.auth_mode = 'liff';
+        if (storeId) payload.store_id = storeId;
+      }
 
       try {
         const res = await fetch(CONFIG.WEBHOOK_REVIEW, {
