@@ -108,6 +108,33 @@
     }
     .btn-gold:active { background: #b8984f; }
     .btn-gold:disabled { background: #ddd; color: #aaa; cursor: not-allowed; }
+    .room-input-group {
+      margin-bottom: 20px;
+      text-align: left;
+    }
+    .room-label {
+      font-size: 12px;
+      color: var(--text-sub);
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+      display: block;
+    }
+    .room-input {
+      width: 100%;
+      padding: 14px 16px;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 16px;
+      color: var(--text);
+      background: var(--ivory);
+      outline: none;
+      transition: border-color 0.2s;
+      text-align: center;
+      letter-spacing: 2px;
+      font-weight: 600;
+    }
+    .room-input:focus { border-color: var(--gold); }
+    .room-input::placeholder { color: #ccc; font-weight: 400; letter-spacing: 0; }
     .btn-outline {
       background: transparent;
       color: var(--text-sub);
@@ -200,8 +227,12 @@
       <div class="view active" id="view-checkin">
         <p class="message">
           ご来店ありがとうございます。<br>
-          下のボタンでチェックインをお願いいたします。
+          客室番号を入力してチェックインをお願いいたします。
         </p>
+        <div class="room-input-group">
+          <label class="room-label">客室番号 / Room Number</label>
+          <input type="text" class="room-input" id="room-input" placeholder="例: 305" inputmode="text" autocomplete="off">
+        </div>
         <button class="btn btn-gold" id="checkin-btn" disabled onclick="doCheckin()">
           チェックイン
         </button>
@@ -276,6 +307,12 @@
     }
 
     async function doCheckin() {
+      var roomId = document.getElementById('room-input').value.trim();
+      if (!roomId) {
+        showInlineError('客室番号を入力してください。');
+        return;
+      }
+
       const btn = document.getElementById('checkin-btn');
       btn.disabled = true;
       document.getElementById('loading').classList.add('show');
@@ -284,14 +321,14 @@
         const res = await fetch(CONFIG.WEBHOOK_CHECKIN, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ line_uid: userProfile.userId, store_id: storeId, store_name: storeName })
+          body: JSON.stringify({ line_uid: userProfile.userId, store_id: storeId, store_name: storeName, room_id: roomId })
         });
         const data = await res.json();
 
         if (data.success) {
           switchView('view-success');
           document.getElementById('success-detail').textContent =
-            storeName + ' へようこそ。\n素敵なひとときをお過ごしください。';
+            storeName + '（' + roomId + '号室）へようこそ。\n素敵なひとときをお過ごしください。';
         } else {
           switchView('view-error');
           document.getElementById('error-title').textContent = 'チェックイン済み';
