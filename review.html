@@ -251,6 +251,14 @@
     let visitId = '';
 
     async function initApp() {
+      // LIFF初期化を先に行う（LINE内ブラウザではinit後にクエリパラメータが反映される）
+      try {
+        await liff.init({ liffId: CONFIG.LIFF_ID });
+      } catch (e) {
+        console.warn('LIFF init failed (non-critical for review):', e.message);
+      }
+
+      // init完了後にURLパラメータを読み取る
       const params = new URLSearchParams(window.location.search);
       visitId = params.get('visit_id') || '';
 
@@ -259,13 +267,6 @@
         document.getElementById('error-title').textContent = '無効なリンク';
         document.getElementById('error-detail').textContent = 'レビュー対象のvisit情報がありません。チェックアウト後に表示されるリンクからアクセスしてください。';
         return;
-      }
-
-      // LIFF初期化（加盟店スタッフ用なのでログイン不要でも動作可能にする）
-      try {
-        await liff.init({ liffId: CONFIG.LIFF_ID });
-      } catch (e) {
-        console.warn('LIFF init failed (non-critical for review):', e.message);
       }
 
       // 文字数カウント
