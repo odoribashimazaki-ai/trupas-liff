@@ -100,56 +100,6 @@
       padding: 24px;
     }
 
-    /* Points Section */
-    .points-display {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    .points-value {
-      font-size: 48px;
-      font-weight: 700;
-      color: var(--navy);
-      line-height: 1;
-    }
-    .points-label {
-      font-size: 11px;
-      color: var(--text-sub);
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      margin-top: 4px;
-    }
-
-    /* Progress Bar */
-    .progress-section {
-      margin-bottom: 20px;
-    }
-    .progress-label {
-      display: flex;
-      justify-content: space-between;
-      font-size: 11px;
-      color: var(--text-sub);
-      margin-bottom: 8px;
-    }
-    .progress-label span:last-child {
-      color: var(--gold);
-      font-weight: 600;
-    }
-    .progress-bar {
-      height: 8px;
-      background: #f0ede8;
-      border-radius: 4px;
-      overflow: hidden;
-    }
-    .progress-fill {
-      height: 100%;
-      border-radius: 4px;
-      transition: width 1s ease;
-    }
-    .progress-fill.bronze { background: var(--bronze); }
-    .progress-fill.silver { background: var(--silver); }
-    .progress-fill.gold { background: var(--gold-tier); }
-    .progress-fill.platinum { background: linear-gradient(90deg, var(--platinum), #b8c6d4); }
-
     /* Stats Row */
     .stats-row {
       display: flex;
@@ -172,6 +122,56 @@
       color: var(--text-sub);
       letter-spacing: 1px;
       margin-top: 2px;
+    }
+
+    /* Medals Section */
+    .medals-card {
+      background: #fff;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 360px;
+      margin: 0 auto 20px;
+      overflow: hidden;
+    }
+    .medals-header {
+      background: var(--navy);
+      padding: 14px 24px;
+      border-bottom: 2px solid var(--gold);
+    }
+    .medals-title {
+      font-size: 11px;
+      color: var(--gold);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+    .medals-body {
+      padding: 20px 24px;
+    }
+    .medals-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .medal-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      background: var(--ivory);
+      border-radius: 20px;
+      font-size: 13px;
+      color: var(--navy);
+      font-weight: 500;
+    }
+    .medal-tag .medal-icon {
+      font-size: 16px;
+    }
+    .medals-empty {
+      font-size: 13px;
+      color: var(--text-sub);
+      text-align: center;
+      padding: 8px 0;
     }
 
     /* Tier Roadmap */
@@ -237,11 +237,6 @@
     }
     .roadmap-tier-name.current {
       color: var(--gold);
-    }
-    .roadmap-range {
-      font-size: 11px;
-      color: var(--text-sub);
-      margin-top: 2px;
     }
     .roadmap-check {
       color: var(--success);
@@ -361,14 +356,14 @@
 
   <!-- Error View -->
   <div id="errorView" class="error-view">
-    <div class="error-icon">⚠</div>
+    <div class="error-icon">&#x26A0;</div>
     <div class="error-msg" id="errorMsg">データの取得に失敗しました。<br>もう一度お試しください。</div>
     <button class="retry-btn" onclick="location.reload()">再読み込み</button>
   </div>
 
   <!-- Not Found View -->
   <div id="notfoundView" class="notfound-view">
-    <div class="notfound-icon">🔍</div>
+    <div class="notfound-icon">&#x1F50D;</div>
     <div class="notfound-msg">ステータス情報が見つかりません。<br>チェックインをして最初の訪問を<br>記録しましょう。</div>
   </div>
 
@@ -377,43 +372,36 @@
     <!-- Tier Card -->
     <div class="tier-card fade-in">
       <div class="tier-header">
-        <div class="tier-badge" id="tierBadge">🛡</div>
+        <div class="tier-badge" id="tierBadge">&#x1F6E1;</div>
         <div class="tier-name" id="tierName">BRONZE</div>
         <div class="user-name" id="userName"></div>
       </div>
       <div class="tier-body">
-        <div class="points-display">
-          <div class="points-value" id="pointsValue">0</div>
-          <div class="points-label">TRUST POINTS</div>
-        </div>
-        <div class="progress-section">
-          <div class="progress-label">
-            <span id="progressCurrent">Bronze</span>
-            <span id="progressNext">→ Silver (100pt)</span>
-          </div>
-          <div class="progress-bar">
-            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
-          </div>
-        </div>
         <div class="stats-row">
           <div class="stat-item">
             <div class="stat-value" id="visitCount">0</div>
             <div class="stat-label">VISITS</div>
           </div>
           <div class="stat-item">
-            <div class="stat-value" id="avgPoints">0</div>
-            <div class="stat-label">AVG PT/VISIT</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-value" id="ledgerCount">0</div>
-            <div class="stat-label">RECORDS</div>
+            <div class="stat-value" id="medalCount">0</div>
+            <div class="stat-label">MEDALS</div>
           </div>
         </div>
       </div>
     </div>
 
+    <!-- Medals Card -->
+    <div class="medals-card fade-in" style="animation-delay: 0.1s">
+      <div class="medals-header">
+        <div class="medals-title">Earned Medals</div>
+      </div>
+      <div class="medals-body">
+        <div class="medals-grid" id="medalsGrid"></div>
+      </div>
+    </div>
+
     <!-- Tier Roadmap -->
-    <div class="roadmap-card fade-in" style="animation-delay: 0.15s">
+    <div class="roadmap-card fade-in" style="animation-delay: 0.2s">
       <div class="roadmap-header">
         <div class="roadmap-title">Tier Roadmap</div>
       </div>
@@ -432,34 +420,54 @@
     };
 
     const TIERS = [
-      { name: 'Bronze', min: 0, max: 99, icon: '🛡', cssClass: 'bronze' },
-      { name: 'Silver', min: 100, max: 299, icon: '🛡', cssClass: 'silver' },
-      { name: 'Gold', min: 300, max: 599, icon: '👑', cssClass: 'gold' },
-      { name: 'Platinum', min: 600, max: Infinity, icon: '💎', cssClass: 'platinum' }
+      { name: 'Bronze', icon: '\u{1F6E1}', cssClass: 'bronze' },
+      { name: 'Silver', icon: '\u{1F6E1}', cssClass: 'silver' },
+      { name: 'Gold', icon: '\u{1F451}', cssClass: 'gold' },
+      { name: 'Platinum', icon: '\u{1F48E}', cssClass: 'platinum' }
     ];
 
+    const MEDAL_ICONS = {
+      'Courteous': '\u{1F64F}',
+      'Considerate': '\u{1F49B}',
+      'Punctual': '\u{23F0}',
+      'Pristine': '\u{2728}',
+      'Gentle': '\u{1F338}',
+      'Selfless': '\u{1F91D}',
+      'Gracious': '\u{1F31F}',
+      'Inclusive': '\u{1F30D}',
+      'Reliable': '\u{1F3AF}',
+      'Transparent': '\u{1F4A0}',
+      'Consistent': '\u{1F4C8}',
+      'Accountable': '\u{2705}',
+      'Attentive': '\u{1F441}',
+      'Empathetic': '\u{1F49C}',
+      'Nurturing': '\u{1F331}'
+    };
+
     function showView(viewId) {
-      ['loadingView', 'errorView', 'notfoundView', 'mainContent'].forEach(id => {
+      ['loadingView', 'errorView', 'notfoundView', 'mainContent'].forEach(function(id) {
         document.getElementById(id).style.display = 'none';
       });
       document.getElementById(viewId).style.display = viewId === 'mainContent' ? 'block' : 'flex';
     }
 
-    function getTierInfo(points) {
-      for (let i = TIERS.length - 1; i >= 0; i--) {
-        if (points >= TIERS[i].min) return { ...TIERS[i], index: i };
+    function getTierIndex(tierName) {
+      for (var i = 0; i < TIERS.length; i++) {
+        if (TIERS[i].name === tierName) return i;
       }
-      return { ...TIERS[0], index: 0 };
+      return 0;
     }
 
     function renderStatus(data) {
-      const user = data.user;
-      const points = user.total_points || 0;
-      const visits = user.visit_count || 0;
-      const tierInfo = getTierInfo(points);
+      var user = data.user;
+      var tierName = user.tier || 'Bronze';
+      var tierIndex = getTierIndex(tierName);
+      var tierInfo = TIERS[tierIndex];
+      var visits = user.visit_count || 0;
+      var medals = user.medals || (user.medals_csv ? user.medals_csv.split(',') : []);
 
       // Tier badge
-      const badge = document.getElementById('tierBadge');
+      var badge = document.getElementById('tierBadge');
       badge.textContent = tierInfo.icon;
       badge.className = 'tier-badge ' + tierInfo.cssClass;
 
@@ -467,76 +475,67 @@
       document.getElementById('tierName').textContent = tierInfo.name.toUpperCase();
 
       // User name
-      const userName = user.display_name || 'Guest';
+      var userName = user.display_name || 'Guest';
       document.getElementById('userName').textContent = userName;
-
-      // Points
-      animateNumber('pointsValue', points);
 
       // Stats
       animateNumber('visitCount', visits);
-      const avg = visits > 0 ? Math.round(points / visits) : 0;
-      animateNumber('avgPoints', avg);
-      animateNumber('ledgerCount', data.ledger_count || 0);
+      animateNumber('medalCount', medals.length);
 
-      // Progress bar
-      const nextTier = TIERS[tierInfo.index + 1];
-      document.getElementById('progressCurrent').textContent = tierInfo.name;
-      if (nextTier) {
-        document.getElementById('progressNext').textContent = '→ ' + nextTier.name + ' (' + nextTier.min + 'pt)';
-        const range = nextTier.min - tierInfo.min;
-        const progress = points - tierInfo.min;
-        const pct = Math.min(Math.round((progress / range) * 100), 100);
-        setTimeout(() => {
-          document.getElementById('progressFill').style.width = pct + '%';
-          document.getElementById('progressFill').className = 'progress-fill ' + tierInfo.cssClass;
-        }, 300);
-      } else {
-        document.getElementById('progressNext').textContent = 'MAX TIER ✦';
-        setTimeout(() => {
-          document.getElementById('progressFill').style.width = '100%';
-          document.getElementById('progressFill').className = 'progress-fill ' + tierInfo.cssClass;
-        }, 300);
-      }
+      // Medals
+      renderMedals(medals);
 
       // Roadmap
-      renderRoadmap(tierInfo.index);
+      renderRoadmap(tierIndex);
 
       showView('mainContent');
     }
 
+    function renderMedals(medals) {
+      var grid = document.getElementById('medalsGrid');
+      grid.innerHTML = '';
+      if (medals.length === 0) {
+        grid.innerHTML = '<div class="medals-empty">まだメダルを獲得していません</div>';
+        return;
+      }
+      medals.forEach(function(medal) {
+        var tag = document.createElement('div');
+        tag.className = 'medal-tag';
+        var icon = MEDAL_ICONS[medal] || '\u{1F3C5}';
+        tag.innerHTML = '<span class="medal-icon">' + icon + '</span>' + medal;
+        grid.appendChild(tag);
+      });
+    }
+
     function renderRoadmap(currentIndex) {
-      const body = document.getElementById('roadmapBody');
+      var body = document.getElementById('roadmapBody');
       body.innerHTML = '';
-      TIERS.forEach((tier, i) => {
-        const item = document.createElement('div');
+      TIERS.forEach(function(tier, i) {
+        var item = document.createElement('div');
         item.className = 'roadmap-item';
 
-        const dotClass = i <= currentIndex
+        var dotClass = i <= currentIndex
           ? 'roadmap-dot active ' + (tier.cssClass === 'gold' ? 'gold-t' : tier.cssClass === 'platinum' ? 'platinum-t' : tier.cssClass)
           : 'roadmap-dot locked';
 
-        const rangeText = tier.max === Infinity
-          ? tier.min + 'pt +'
-          : tier.min + ' - ' + tier.max + 'pt';
-
-        const nameClass = i === currentIndex ? 'roadmap-tier-name current' : 'roadmap-tier-name';
-        const checkMark = i < currentIndex ? '<div class="roadmap-check">✓</div>' : (i === currentIndex ? '<div class="roadmap-check" style="color:var(--gold)">●</div>' : '');
+        var nameClass = i === currentIndex ? 'roadmap-tier-name current' : 'roadmap-tier-name';
+        var checkMark = i < currentIndex
+          ? '<div class="roadmap-check">\u2713</div>'
+          : (i === currentIndex ? '<div class="roadmap-check" style="color:var(--gold)">\u25CF</div>' : '');
 
         item.innerHTML = '<div class="' + dotClass + '">' + tier.icon + '</div>' +
-          '<div class="roadmap-info"><div class="' + nameClass + '">' + tier.name + '</div>' +
-          '<div class="roadmap-range">' + rangeText + '</div></div>' + checkMark;
+          '<div class="roadmap-info"><div class="' + nameClass + '">' + tier.name + '</div></div>' + checkMark;
 
         body.appendChild(item);
       });
     }
 
     function animateNumber(elementId, target) {
-      const el = document.getElementById(elementId);
+      var el = document.getElementById(elementId);
       if (target === 0) { el.textContent = '0'; return; }
-      let current = 0;
-      const step = Math.max(1, Math.floor(target / 30));
-      const interval = setInterval(() => {
+      var current = 0;
+      var step = Math.max(1, Math.floor(target / 30));
+      var interval = setInterval(function() {
         current += step;
         if (current >= target) {
           current = target;
@@ -549,16 +548,15 @@
     async function init() {
       try {
         // Debug mode for localhost
-        const isDebug = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+        var isDebug = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
 
-        let lineUid = null;
+        var lineUid = null;
 
         if (isDebug) {
           console.log('[DEBUG] Running in debug mode');
           lineUid = 'U_debug_user_001';
-          // Show mock data in debug
           renderStatus({
-            user: { found: true, display_name: 'テストユーザー', tier: 'Silver', total_points: 150, visit_count: 6 },
+            user: { found: true, display_name: 'テストユーザー', tier: 'Silver', total_points: 150, visit_count: 6, medals: ['Courteous', 'Considerate', 'Punctual', 'Pristine'] },
             visits_count: 6,
             ledger_count: 6
           });
@@ -573,11 +571,11 @@
           return;
         }
 
-        const profile = await liff.getProfile();
+        var profile = await liff.getProfile();
         lineUid = profile.userId;
 
         // Fetch status from webhook
-        const res = await fetch(CONFIG.WEBHOOK_STATUS, {
+        var res = await fetch(CONFIG.WEBHOOK_STATUS, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ line_uid: lineUid })
@@ -585,7 +583,7 @@
 
         if (!res.ok) throw new Error('Server error: ' + res.status);
 
-        const data = await res.json();
+        var data = await res.json();
 
         if (!data.user || !data.user.found) {
           showView('notfoundView');
