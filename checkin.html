@@ -276,6 +276,24 @@
     let storeName = '';
 
     async function initApp() {
+      // LIFF初期化を先に行う（LINE内ブラウザではinit後にクエリパラメータが反映される）
+      try {
+        await liff.init({ liffId: CONFIG.LIFF_ID });
+        if (!liff.isLoggedIn()) { liff.login({ redirectUri: window.location.href }); return; }
+        userProfile = await liff.getProfile();
+      } catch (e) {
+        console.warn('LIFF init failed:', e.message);
+        if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+          userProfile = { userId: 'U_debug_user_001', displayName: 'Debug' };
+        } else {
+          switchView('view-error');
+          document.getElementById('error-title').textContent = '初期化エラー';
+          document.getElementById('error-detail').textContent = 'LINEアプリ内で開いてください。';
+          return;
+        }
+      }
+
+      // init完了後にURLパラメータを読み取る
       const params = new URLSearchParams(window.location.search);
       storeId = params.get('store_id') || '';
       storeName = decodeURIComponent(params.get('store_name') || '');
@@ -287,23 +305,7 @@
         return;
       }
       document.getElementById('store-name').textContent = storeName;
-
-      try {
-        await liff.init({ liffId: CONFIG.LIFF_ID });
-        if (!liff.isLoggedIn()) { liff.login({ redirectUri: window.location.href }); return; }
-        userProfile = await liff.getProfile();
-        document.getElementById('checkin-btn').disabled = false;
-      } catch (e) {
-        console.warn('LIFF init failed:', e.message);
-        if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
-          userProfile = { userId: 'U_debug_user_001', displayName: 'Debug' };
-          document.getElementById('checkin-btn').disabled = false;
-        } else {
-          switchView('view-error');
-          document.getElementById('error-title').textContent = '初期化エラー';
-          document.getElementById('error-detail').textContent = 'LINEアプリ内で開いてください。';
-        }
-      }
+      document.getElementById('checkin-btn').disabled = false;
     }
 
     async function doCheckin() {
