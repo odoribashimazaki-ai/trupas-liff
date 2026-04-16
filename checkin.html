@@ -260,7 +260,11 @@
         <div class="result-detail">
           店舗に設置されたQRコードを<br>スキャンしてチェックインしてください。
         </div>
-        <button class="btn btn-outline" onclick="closeLiff()" style="margin-top:24px;">閉じる</button>
+        <button class="btn btn-gold" onclick="launchScanner()" style="margin-top:24px;" id="scan-btn">
+          QRコードをスキャン
+        </button>
+        <div class="inline-error" id="scan-error"></div>
+        <button class="btn btn-outline" onclick="closeLiff()" style="margin-top:10px;">閉じる</button>
       </div>
 
       <!-- エラー -->
@@ -386,6 +390,49 @@
       el.textContent = msg;
       el.classList.add('show');
       setTimeout(() => el.classList.remove('show'), 5000);
+    }
+
+    async function launchScanner() {
+      const scanBtn = document.getElementById('scan-btn');
+      const scanErr = document.getElementById('scan-error');
+      scanErr.classList.remove('show');
+
+      // liff.scanCodeV2 はLINEアプリ内でのみ利用可能
+      if (typeof liff === 'undefined' || !liff.isInClient || !liff.isInClient()) {
+        scanErr.textContent = 'QRスキャンはLINEアプリ内でご利用いただけます。カメラアプリでQRコードを読み取ってください。';
+        scanErr.classList.add('show');
+        return;
+      }
+
+      try {
+        scanBtn.disabled = true;
+        scanBtn.textContent = 'スキャン中...';
+        const result = await liff.scanCodeV2();
+        const scannedUrl = result.value;
+
+        // スキャン結果からstore_idを含むURLか判定
+        if (scannedUrl && scannedUrl.indexOf('store_id=') !== -1) {
+          // LIFF URLまたはチェックインURLの場合、そのままリダイレクト
+          window.location.href = scannedUrl;
+        } else {
+          scanErr.textContent = 'TRUPASのQRコードではありません。店舗に設置されたQRコードを読み取ってください。';
+          scanErr.classList.add('show');
+          scanBtn.disabled = false;
+          scanBtn.textContent = 'QRコードをスキャン';
+        }
+      } catch (e) {
+        console.warn('scanCodeV2 error:', e);
+        if (e.code === 'FORBIDDEN') {
+          scanErr.textContent = 'QRスキャン機能が利用できません。カメラアプリでQRコードを読み取ってください。';
+        } else if (e.code === 'USER_CANCELLED' || (e.message && e.message.indexOf('cancel') !== -1)) {
+          // ユーザーがキャンセルした場合は何もしない
+        } else {
+          scanErr.textContent = 'スキャンに失敗しました。再度お試しください。';
+        }
+        scanErr.classList.add('show');
+        scanBtn.disabled = false;
+        scanBtn.textContent = 'QRコードをスキャン';
+      }
     }
 
     function closeLiff() {
