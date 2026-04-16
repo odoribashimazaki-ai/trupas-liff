@@ -355,14 +355,14 @@
 
   <!-- Error View -->
   <div id="errorView" class="error-view">
-    <div class="error-icon">&#x26A0;</div>
+    <div class="error-icon"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><path d="M12 9v4M12 17h.01"/></svg></div>
     <div class="error-msg" id="errorMsg">データの取得に失敗しました。<br>もう一度お試しください。</div>
     <button class="retry-btn" onclick="location.reload()">再読み込み</button>
   </div>
 
   <!-- Not Found View -->
   <div id="notfoundView" class="notfound-view">
-    <div class="notfound-icon">&#x1F50D;</div>
+    <div class="notfound-icon"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></div>
     <div class="notfound-msg">ステータス情報が見つかりません。<br>チェックインをして最初の訪問を<br>記録しましょう。</div>
   </div>
 
@@ -371,7 +371,7 @@
     <!-- Tier Card -->
     <div class="tier-card fade-in">
       <div class="tier-header">
-        <div class="tier-badge" id="tierBadge">&#x1F6E1;</div>
+        <div class="tier-badge" id="tierBadge"></div>
         <div class="tier-name" id="tierName">BRONZE</div>
         <div class="user-name" id="userName"></div>
       </div>
@@ -418,29 +418,36 @@
       WEBHOOK_STATUS: 'https://hook.eu1.make.com/utmb89k86th8tih9y370cxc8kwwl8p23'
     };
 
+    function svgIcon(d, sw) {
+      return '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="' + (sw || 1.5) + '" stroke-linecap="round" stroke-linejoin="round">' + d + '</svg>';
+    }
+    var SVG_SHIELD = svgIcon('<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>');
+    var SVG_CROWN  = svgIcon('<path d="M2 20h20M4 20l2-14 4 6 2-8 2 8 4-6 2 14"/>');
+    var SVG_GEM    = svgIcon('<path d="M6 3h12l4 6-10 13L2 9z"/><path d="M2 9h20M12 22l4-13M12 22L8 9m4-6v6"/>');
+
     const TIERS = [
-      { name: 'Bronze', icon: '\u{1F6E1}', cssClass: 'bronze' },
-      { name: 'Silver', icon: '\u{1F6E1}', cssClass: 'silver' },
-      { name: 'Gold', icon: '\u{1F451}', cssClass: 'gold' },
-      { name: 'Platinum', icon: '\u{1F48E}', cssClass: 'platinum' }
+      { name: 'Bronze', icon: SVG_SHIELD, cssClass: 'bronze' },
+      { name: 'Silver', icon: SVG_SHIELD, cssClass: 'silver' },
+      { name: 'Gold', icon: SVG_CROWN, cssClass: 'gold' },
+      { name: 'Platinum', icon: SVG_GEM, cssClass: 'platinum' }
     ];
 
     const MEDAL_DATA = {
-      'Courteous':   { icon: '\u{1F64F}', ja: '礼儀正しい' },
-      'Considerate': { icon: '\u{1F49B}', ja: '思いやり' },
-      'Punctual':    { icon: '\u{23F0}',  ja: '時間厳守' },
-      'Pristine':    { icon: '\u{2728}',  ja: '清潔' },
-      'Gentle':      { icon: '\u{1F338}', ja: '穏やか' },
-      'Selfless':    { icon: '\u{1F91D}', ja: '無私の心' },
-      'Gracious':    { icon: '\u{1F31F}', ja: '寛大' },
-      'Inclusive':    { icon: '\u{1F30D}', ja: '包容力' },
-      'Reliable':    { icon: '\u{1F3AF}', ja: '信頼できる' },
-      'Transparent': { icon: '\u{1F4A0}', ja: '誠実' },
-      'Consistent':  { icon: '\u{1F4C8}', ja: '一貫性' },
-      'Accountable': { icon: '\u{2705}',  ja: '責任感' },
-      'Attentive':   { icon: '\u{1F441}', ja: '気配り' },
-      'Empathetic':  { icon: '\u{1F49C}', ja: '共感力' },
-      'Nurturing':   { icon: '\u{1F331}', ja: '育む心' }
+      'Courteous':   { icon: svgIcon('<path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>'), ja: '礼儀正しい' },
+      'Considerate': { icon: svgIcon('<path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>'), ja: '思いやり' },
+      'Punctual':    { icon: svgIcon('<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>'), ja: '時間厳守' },
+      'Pristine':    { icon: svgIcon('<path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5z"/><path d="M19 13l.8 2.2L22 16l-2.2.8L19 19l-.8-2.2L16 16l2.2-.8z"/>'), ja: '清潔' },
+      'Gentle':      { icon: svgIcon('<path d="M20.24 12.24a6 6 0 00-8.49-8.49L5 10.5V19h8.5z"/><path d="M16 8L2 22M17.5 15H9"/>'), ja: '穏やか' },
+      'Selfless':    { icon: svgIcon('<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>'), ja: '無私の心' },
+      'Gracious':    { icon: svgIcon('<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14l-5-4.87 6.91-1.01z"/>'), ja: '寛大' },
+      'Inclusive':    { icon: svgIcon('<circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>'), ja: '包容力' },
+      'Reliable':    { icon: svgIcon('<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>'), ja: '信頼できる' },
+      'Transparent': { icon: svgIcon('<path d="M12 2l10 10-10 10L2 12z"/>'), ja: '誠実' },
+      'Consistent':  { icon: svgIcon('<polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>'), ja: '一貫性' },
+      'Accountable': { icon: svgIcon('<polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>'), ja: '責任感' },
+      'Attentive':   { icon: svgIcon('<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>'), ja: '気配り' },
+      'Empathetic':  { icon: svgIcon('<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0016.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 002 8.5c0 2.3 1.5 4.05 3 5.5l7 7z"/>'), ja: '共感力' },
+      'Nurturing':   { icon: svgIcon('<path d="M7 20h10M12 20c5.5-2.5.8-6.4 3-10"/><path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z"/><path d="M14.1 6a7 7 0 00-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z"/>'), ja: '育む心' }
     };
 
     function showView(viewId) {
@@ -467,7 +474,7 @@
 
       // Tier badge
       var badge = document.getElementById('tierBadge');
-      badge.textContent = tierInfo.icon;
+      badge.innerHTML = tierInfo.icon;
       badge.className = 'tier-badge ' + tierInfo.cssClass;
 
       // Tier name
@@ -500,7 +507,7 @@
       medals.forEach(function(medal) {
         var tag = document.createElement('div');
         tag.className = 'medal-tag';
-        var data = MEDAL_DATA[medal] || { icon: '\u{1F3C5}', ja: medal };
+        var data = MEDAL_DATA[medal] || { icon: svgIcon('<circle cx="12" cy="12" r="8"/><path d="M12 8v0M8 14s1.5 2 4 2 4-2 4-2"/>'), ja: medal };
         tag.innerHTML = '<span class="medal-icon">' + data.icon + '</span>' + data.ja + ' / ' + medal;
         grid.appendChild(tag);
       });
@@ -518,9 +525,11 @@
           : 'roadmap-dot locked';
 
         var nameClass = i === currentIndex ? 'roadmap-tier-name current' : 'roadmap-tier-name';
+        var svgCheck = svgIcon('<polyline points="20 6 9 17 4 12"/>', 2.5);
+        var svgDot = '<svg width="1em" height="1em" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5" fill="currentColor"/></svg>';
         var checkMark = i < currentIndex
-          ? '<div class="roadmap-check">\u2713</div>'
-          : (i === currentIndex ? '<div class="roadmap-check" style="color:var(--gold)">\u25CF</div>' : '');
+          ? '<div class="roadmap-check">' + svgCheck + '</div>'
+          : (i === currentIndex ? '<div class="roadmap-check" style="color:var(--gold)">' + svgDot + '</div>' : '');
 
         item.innerHTML = '<div class="' + dotClass + '">' + tier.icon + '</div>' +
           '<div class="roadmap-info"><div class="' + nameClass + '">' + tier.name + '</div></div>' + checkMark;

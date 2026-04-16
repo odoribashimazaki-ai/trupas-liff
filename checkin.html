@@ -218,7 +218,7 @@
 
   <div class="card">
     <div class="card-header">
-      <div class="store-icon">🏨</div>
+      <div class="store-icon"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-4h6v4"/></svg></div>
       <div class="store-name" id="store-name">---</div>
       <div class="store-label">WELCOME</div>
     </div>
@@ -245,7 +245,7 @@
 
       <!-- 成功 -->
       <div class="view" id="view-success">
-        <div class="result-icon success">&#10003;</div>
+        <div class="result-icon success"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
         <div class="result-title">チェックイン完了</div>
         <div class="divider"></div>
         <div class="result-detail" id="success-detail"></div>
@@ -254,7 +254,7 @@
 
       <!-- QRスキャン案内（店舗パラメータなし時） -->
       <div class="view" id="view-scan">
-        <div class="result-icon scan">&#x1F4F7;</div>
+        <div class="result-icon scan"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="15" y="15" width="2" height="2"/><path d="M21 15v6h-6"/></svg></div>
         <div class="result-title">チェックイン</div>
         <div class="divider"></div>
         <div class="result-detail">
@@ -269,7 +269,7 @@
 
       <!-- エラー -->
       <div class="view" id="view-error">
-        <div class="result-icon error">!</div>
+        <div class="result-icon error"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg></div>
         <div class="result-title" id="error-title">エラー</div>
         <div class="divider"></div>
         <div class="result-detail" id="error-detail"></div>
@@ -327,7 +327,7 @@
       if (!storeId || !storeName) {
         document.getElementById('store-name').textContent = 'CHECK IN';
         document.querySelector('.store-label').textContent = 'QR CODE REQUIRED';
-        document.querySelector('.store-icon').textContent = '\uD83D\uDCF1';
+        document.querySelector('.store-icon').innerHTML = '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg>';
         switchView('view-scan');
         return;
       }
