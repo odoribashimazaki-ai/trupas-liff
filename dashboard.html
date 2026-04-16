@@ -196,7 +196,7 @@
     <!-- 認証画面 -->
     <div id="view-auth">
       <div class="auth-card">
-        <h2>スタッフダッシュボード</h2>
+        <h2>ホストダッシュボード</h2>
         <p>認証中...</p>
         <div class="loading" id="auth-loading">
           <div class="dot-pulse"><span></span><span></span><span></span></div>
@@ -306,7 +306,7 @@
       staffToken = params.get('token') || '';
 
       if (!storeId || !staffToken) {
-        showAuthError('URLにstore_idまたはtokenがありません。店舗専用URLからアクセスしてください。');
+        showAuthError('URLにstore_idまたはtokenがありません。パートナー専用URLからアクセスしてください。');
         return;
       }
 
