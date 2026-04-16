@@ -226,12 +226,12 @@
     <div class="card-body">
       <!-- チェックイン前 -->
       <div class="view active" id="view-checkin">
-        <p class="message">
+        <p class="message" id="checkin-message">
           ご来店ありがとうございます。<br>
           客室番号を入力してチェックインをお願いいたします。
         </p>
         <div class="room-input-group">
-          <label class="room-label">客室番号 / Room Number</label>
+          <label class="room-label" id="room-label">客室番号 / Room Number</label>
           <input type="text" class="room-input" id="room-input" placeholder="例: 305" inputmode="text" autocomplete="off">
         </div>
         <button class="btn btn-gold" id="checkin-btn" disabled onclick="doCheckin()">
@@ -286,6 +286,15 @@
     let userProfile = null;
     let storeId = '';
     let storeName = '';
+    let guestIdType = 'room_number'; // default
+
+    const GUEST_ID_CONFIG = {
+      room_number:       { label: '客室番号 / Room Number',         placeholder: '例: 305',    inputmode: 'numeric', message: '客室番号を入力してチェックインをお願いいたします。', error: '客室番号を入力してください。', success: function(name, id) { return name + '（' + id + '号室）へようこそ。\n素敵なひとときをお過ごしください。'; } },
+      table_number:      { label: 'テーブル番号 / Table Number',    placeholder: '例: 3',      inputmode: 'numeric', message: 'テーブル番号を入力してチェックインをお願いいたします。', error: 'テーブル番号を入力してください。', success: function(name, id) { return name + '（テーブル' + id + '）へようこそ。\n素敵なひとときをお過ごしください。'; } },
+      reservation_name:  { label: 'ご予約名 / Reservation Name',   placeholder: '例: 田中',   inputmode: 'text',    message: 'ご予約名を入力してチェックインをお願いいたします。', error: 'ご予約名を入力してください。', success: function(name, id) { return name + '（' + id + '様）へようこそ。\n素敵なひとときをお過ごしください。'; } },
+      reservation_time:  { label: '予約時間 / Reservation Time',    placeholder: '例: 14:00',  inputmode: 'text',    message: 'ご予約時間を入力してチェックインをお願いいたします。', error: '予約時間を入力してください。', success: function(name, id) { return name + '（' + id + '予約）へようこそ。\n素敵なひとときをお過ごしください。'; } },
+      reservation_id:    { label: '予約番号 / Reservation ID',      placeholder: '例: A-1234', inputmode: 'text',    message: '予約番号を入力してチェックインをお願いいたします。', error: '予約番号を入力してください。', success: function(name, id) { return name + '（予約 ' + id + '）へようこそ。\n素敵なひとときをお過ごしください。'; } }
+    };
 
     async function initApp() {
       // LIFF初期化を先に行う（LINE内ブラウザではinit後にクエリパラメータが反映される）
@@ -309,6 +318,7 @@
       const params = new URLSearchParams(window.location.search);
       storeId = params.get('store_id') || '';
       storeName = decodeURIComponent(params.get('store_name') || '');
+      guestIdType = params.get('guest_id_type') || 'room_number';
 
       if (!storeId || !storeName) {
         document.getElementById('store-name').textContent = 'CHECK IN';
@@ -318,13 +328,23 @@
         return;
       }
       document.getElementById('store-name').textContent = storeName;
+
+      // guest_id_type に応じてUIを切り替え
+      var cfg = GUEST_ID_CONFIG[guestIdType] || GUEST_ID_CONFIG['room_number'];
+      document.getElementById('checkin-message').innerHTML = 'ご来店ありがとうございます。<br>' + cfg.message;
+      document.getElementById('room-label').textContent = cfg.label;
+      var inp = document.getElementById('room-input');
+      inp.placeholder = cfg.placeholder;
+      inp.inputMode = cfg.inputmode;
+
       document.getElementById('checkin-btn').disabled = false;
     }
 
     async function doCheckin() {
+      var cfg = GUEST_ID_CONFIG[guestIdType] || GUEST_ID_CONFIG['room_number'];
       var roomId = document.getElementById('room-input').value.trim();
       if (!roomId) {
-        showInlineError('客室番号を入力してください。');
+        showInlineError(cfg.error);
         return;
       }
 
@@ -342,8 +362,7 @@
 
         if (data.success) {
           switchView('view-success');
-          document.getElementById('success-detail').textContent =
-            storeName + '（' + roomId + '号室）へようこそ。\n素敵なひとときをお過ごしください。';
+          document.getElementById('success-detail').textContent = cfg.success(storeName, roomId);
         } else {
           switchView('view-error');
           document.getElementById('error-title').textContent = 'チェックイン済み';
