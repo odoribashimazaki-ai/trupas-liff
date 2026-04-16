@@ -174,6 +174,103 @@
       padding: 8px 0;
     }
 
+    /* Benefits Section */
+    .benefits-card {
+      background: #fff;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 360px;
+      margin: 0 auto 20px;
+      overflow: hidden;
+    }
+    .benefits-header {
+      background: var(--navy);
+      padding: 14px 24px;
+      border-bottom: 2px solid var(--gold);
+    }
+    .benefits-title {
+      font-size: 11px;
+      color: var(--gold);
+      letter-spacing: 1px;
+      font-weight: 600;
+    }
+    .benefits-body {
+      padding: 20px 24px;
+    }
+    .benefits-store {
+      margin-bottom: 18px;
+    }
+    .benefits-store:last-child {
+      margin-bottom: 0;
+    }
+    .benefits-store-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--navy);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .benefits-store-name .store-icon {
+      color: var(--gold);
+      font-size: 14px;
+    }
+    .benefit-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 8px 0;
+    }
+    .benefit-row + .benefit-row {
+      border-top: 1px solid #f0ede8;
+    }
+    .benefit-tier-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-top: 4px;
+      flex-shrink: 0;
+    }
+    .benefit-tier-dot.bronze { background: var(--bronze); }
+    .benefit-tier-dot.silver { background: var(--silver); }
+    .benefit-tier-dot.gold { background: var(--gold-tier); }
+    .benefit-tier-dot.platinum { background: var(--platinum); }
+    .benefit-tier-dot.locked {
+      background: #ddd;
+      opacity: 0.5;
+    }
+    .benefit-text {
+      flex: 1;
+      font-size: 13px;
+      color: var(--text);
+      line-height: 1.5;
+      white-space: pre-line;
+    }
+    .benefit-text.locked {
+      color: var(--text-sub);
+      opacity: 0.5;
+    }
+    .benefit-tier-label {
+      font-size: 10px;
+      letter-spacing: 0.5px;
+      color: var(--text-sub);
+      font-weight: 600;
+      flex-shrink: 0;
+      min-width: 56px;
+    }
+    .benefits-empty {
+      font-size: 13px;
+      color: var(--text-sub);
+      text-align: center;
+      padding: 8px 0;
+    }
+    .benefits-divider {
+      height: 1px;
+      background: #eee;
+      margin: 16px 0;
+    }
+
     /* Tier Roadmap */
     .roadmap-card {
       background: #fff;
@@ -399,8 +496,16 @@
       </div>
     </div>
 
+    <!-- Benefits Card -->
+    <div class="benefits-card fade-in" style="animation-delay: 0.2s" id="benefitsCard">
+      <div class="benefits-header">
+        <div class="benefits-title">特典 / BENEFITS</div>
+      </div>
+      <div class="benefits-body" id="benefitsBody"></div>
+    </div>
+
     <!-- Tier Roadmap -->
-    <div class="roadmap-card fade-in" style="animation-delay: 0.2s">
+    <div class="roadmap-card fade-in" style="animation-delay: 0.3s">
       <div class="roadmap-header">
         <div class="roadmap-title">ステータスの道のり / TIER ROADMAP</div>
       </div>
@@ -492,6 +597,10 @@
       // Medals
       renderMedals(medals);
 
+      // Benefits
+      var stores = data.stores || [];
+      renderBenefits(stores, tierIndex);
+
       // Roadmap
       renderRoadmap(tierIndex);
 
@@ -511,6 +620,73 @@
         var data = MEDAL_DATA[medal] || { icon: svgIcon('<circle cx="12" cy="12" r="8"/><path d="M12 8v0M8 14s1.5 2 4 2 4-2 4-2"/>'), ja: medal };
         tag.innerHTML = '<span class="medal-icon">' + data.icon + '</span>' + data.ja + ' / ' + medal;
         grid.appendChild(tag);
+      });
+    }
+
+    var TIER_KEYS = ['bronze', 'silver', 'gold', 'platinum'];
+    var TIER_LABELS = ['Bronze', 'Silver', 'Gold', 'Platinum'];
+
+    function renderBenefits(stores, currentTierIndex) {
+      var body = document.getElementById('benefitsBody');
+      var card = document.getElementById('benefitsCard');
+      body.innerHTML = '';
+
+      // Filter stores that have at least one benefit set
+      var storesWithBenefits = stores.filter(function(s) {
+        return s.bronze_benefit || s.silver_benefit || s.gold_benefit || s.platinum_benefit;
+      });
+
+      if (storesWithBenefits.length === 0) {
+        card.style.display = 'none';
+        return;
+      }
+      card.style.display = 'block';
+
+      storesWithBenefits.forEach(function(store, storeIdx) {
+        if (storeIdx > 0) {
+          var divider = document.createElement('div');
+          divider.className = 'benefits-divider';
+          body.appendChild(divider);
+        }
+
+        var storeDiv = document.createElement('div');
+        storeDiv.className = 'benefits-store';
+
+        // Store name
+        var storeHeader = document.createElement('div');
+        storeHeader.className = 'benefits-store-name';
+        var storeIcon = svgIcon('<path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>');
+        storeHeader.innerHTML = '<span class="store-icon">' + storeIcon + '</span>' + (store.store_name || 'パートナー店舗');
+        storeDiv.appendChild(storeHeader);
+
+        // Show each tier's benefit
+        TIER_KEYS.forEach(function(key, tierIdx) {
+          var benefitText = store[key + '_benefit'];
+          if (!benefitText) return;
+
+          var row = document.createElement('div');
+          row.className = 'benefit-row';
+
+          var isUnlocked = tierIdx <= currentTierIndex;
+
+          var dot = document.createElement('div');
+          dot.className = 'benefit-tier-dot ' + (isUnlocked ? key : 'locked');
+
+          var label = document.createElement('div');
+          label.className = 'benefit-tier-label';
+          label.textContent = TIER_LABELS[tierIdx];
+
+          var text = document.createElement('div');
+          text.className = 'benefit-text' + (isUnlocked ? '' : ' locked');
+          text.textContent = isUnlocked ? benefitText : '🔒 ' + TIER_LABELS[tierIdx] + 'で解放';
+
+          row.appendChild(dot);
+          row.appendChild(label);
+          row.appendChild(text);
+          storeDiv.appendChild(row);
+        });
+
+        body.appendChild(storeDiv);
       });
     }
 
@@ -566,6 +742,9 @@
           lineUid = 'U_debug_user_001';
           renderStatus({
             user: { found: true, display_name: 'テストユーザー', tier: 'Silver', total_points: 150, visit_count: 6, medals: ['Courteous', 'Considerate', 'Punctual', 'Pristine'] },
+            stores: [
+              { store_id: 'debug_store_01', store_name: 'MARUKI齋福', bronze_benefit: 'ウェルカムドリンクをサービス', silver_benefit: 'レイトチェックアウト（+1時間）', gold_benefit: 'お部屋のアップグレード（空室時）', platinum_benefit: 'スイートルーム優先案内' }
+            ],
             visits_count: 6,
             ledger_count: 6
           });
