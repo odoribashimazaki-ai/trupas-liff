@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>TRUPAS - 予約確認</title>
+  <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    :root {
+      --navy: #16213e;
+      --navy-light: #1a2744;
+      --gold: #c9a96e;
+      --gold-light: #e8d5b0;
+      --ivory: #faf8f5;
+      --text: #2c2c2c;
+      --text-sub: #8a8a8a;
+      --success: #4a7c59;
+      --error: #a04040;
+      --bronze: #cd7f32;
+      --silver: #a0a0a0;
+      --gold-tier: #c9a96e;
+      --platinum: #8c9ead;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', sans-serif;
+      background: var(--navy);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 20px;
+    }
+    .brand {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .brand-name {
+      font-size: 13px;
+      letter-spacing: 6px;
+      color: var(--gold);
+      font-weight: 500;
+    }
+    .brand-tagline {
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: rgba(201,169,110,0.5);
+      margin-top: 4px;
+    }
+
+    /* Card */
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 360px;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+    .card-header {
+      background: var(--navy);
+      padding: 24px 24px 20px;
+      text-align: center;
+      border-bottom: 2px solid var(--gold);
+    }
+    .store-icon {
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      border: 2px solid var(--gold);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 12px;
+      font-size: 24px;
+      background: rgba(201,169,110,0.1);
+      color: var(--gold);
+    }
+    .store-name {
+      font-size: 18px;
+      font-weight: 600;
+      color: #fff;
+      letter-spacing: 1px;
+    }
+    .store-label {
+      font-size: 10px;
+      color: var(--gold);
+      letter-spacing: 3px;
+      margin-top: 6px;
+    }
+    .card-body {
+      padding: 24px;
+    }
+
+    /* Tier display (for verified members) */
+    .tier-section {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .tier-badge {
+      width: 72px; height: 72px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 12px;
+      font-size: 28px;
+      position: relative;
+    }
+    .tier-badge::after {
+      content: '';
+      position: absolute;
+      inset: -3px;
+      border-radius: 50%;
+      border: 2px solid;
+      border-color: inherit;
+    }
+    .tier-badge.bronze { background: rgba(205,127,50,0.15); border-color: var(--bronze); color: var(--bronze); }
+    .tier-badge.silver { background: rgba(160,160,160,0.15); border-color: var(--silver); color: var(--silver); }
+    .tier-badge.gold { background: rgba(201,169,110,0.15); border-color: var(--gold-tier); color: var(--gold-tier); }
+    .tier-badge.platinum { background: rgba(140,158,173,0.15); border-color: var(--platinum); color: var(--platinum); }
+    .tier-name {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--navy);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+    }
+    .user-name {
+      font-size: 13px;
+      color: var(--text-sub);
+      margin-top: 4px;
+    }
+
+    /* Verified badge */
+    .verified-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      background: rgba(74,124,89,0.1);
+      border: 1px solid rgba(74,124,89,0.2);
+      border-radius: 20px;
+      font-size: 13px;
+      color: var(--success);
+      font-weight: 500;
+      margin: 16px 0 4px;
+    }
+
+    /* Stats */
+    .stats-row {
+      display: flex;
+      gap: 10px;
+      margin: 16px 0;
+    }
+    .stat-item {
+      flex: 1;
+      background: var(--ivory);
+      border-radius: 10px;
+      padding: 12px 8px;
+      text-align: center;
+    }
+    .stat-value {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--navy);
+    }
+    .stat-label {
+      font-size: 9px;
+      color: var(--text-sub);
+      letter-spacing: 1px;
+      margin-top: 2px;
+    }
+
+    /* Medals (compact) */
+    .medals-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: center;
+      margin: 12px 0 16px;
+    }
+    .medal-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 5px 10px;
+      background: var(--ivory);
+      border-radius: 16px;
+      font-size: 11px;
+      color: var(--navy);
+      font-weight: 500;
+    }
+    .medal-chip .m-icon { font-size: 13px; }
+
+    /* Benefits for this store */
+    .benefits-section {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid #f0ede8;
+    }
+    .benefits-title {
+      font-size: 11px;
+      color: var(--text-sub);
+      letter-spacing: 2px;
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    .benefit-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 8px 0;
+    }
+    .benefit-row + .benefit-row {
+      border-top: 1px solid #f0ede8;
+    }
+    .benefit-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      margin-top: 4px;
+      flex-shrink: 0;
+    }
+    .benefit-dot.bronze { background: var(--bronze); }
+    .benefit-dot.silver { background: var(--silver); }
+    .benefit-dot.gold { background: var(--gold-tier); }
+    .benefit-dot.platinum { background: var(--platinum); }
+    .benefit-dot.locked { background: #ddd; opacity: 0.5; }
+    .benefit-label {
+      font-size: 10px;
+      color: var(--text-sub);
+      font-weight: 600;
+      min-width: 52px;
+      flex-shrink: 0;
+    }
+    .benefit-text {
+      flex: 1;
+      font-size: 13px;
+      color: var(--text);
+      line-height: 1.5;
+    }
+    .benefit-text.locked {
+      color: var(--text-sub);
+      opacity: 0.5;
+    }
+
+    /* Buttons */
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      letter-spacing: 1px;
+      text-align: center;
+      text-decoration: none;
+    }
+    .btn-gold {
+      background: var(--gold);
+      color: var(--navy);
+    }
+    .btn-gold:active { background: #b8984f; }
+    .btn-outline {
+      background: transparent;
+      color: var(--text-sub);
+      border: 1px solid #e0e0e0;
+      margin-top: 8px;
+      font-weight: 400;
+      font-size: 13px;
+    }
+    .btn-success {
+      background: var(--success);
+      color: #fff;
+    }
+    .btn-success:active { background: #3d6b4c; }
+
+    /* Message */
+    .message {
+      font-size: 13px;
+      color: var(--text-sub);
+      line-height: 1.8;
+      text-align: center;
+    }
+
+    /* Divider */
+    .divider {
+      width: 40px;
+      height: 1px;
+      background: var(--gold-light);
+      margin: 16px auto;
+    }
+
+    /* Not Found (registration prompt) */
+    .register-section { text-align: center; }
+    .register-icon {
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 14px;
+      font-size: 24px;
+      background: rgba(201,169,110,0.1);
+      color: var(--gold);
+    }
+    .register-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+    .register-steps {
+      text-align: left;
+      margin: 16px 0;
+      padding: 16px;
+      background: var(--ivory);
+      border-radius: 10px;
+    }
+    .register-step {
+      display: flex;
+      gap: 10px;
+      padding: 8px 0;
+      font-size: 13px;
+      color: var(--text);
+      line-height: 1.6;
+    }
+    .step-num {
+      width: 22px; height: 22px;
+      background: var(--gold);
+      color: var(--navy);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    /* Views */
+    .view { display: none; }
+    .view.active { display: block; }
+
+    /* Loading */
+    .loading-view {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 40vh;
+    }
+    .loading-view.active { display: flex; }
+    .dot-pulse { display: flex; gap: 8px; margin-bottom: 16px; }
+    .dot-pulse span {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--gold);
+      animation: pulse 1.2s ease-in-out infinite;
+    }
+    .dot-pulse span:nth-child(2) { animation-delay: 0.2s; }
+    .dot-pulse span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes pulse {
+      0%, 100% { opacity: 0.3; transform: scale(0.8); }
+      50% { opacity: 1; transform: scale(1); }
+    }
+    .loading-text {
+      font-size: 12px;
+      color: var(--gold-light);
+      letter-spacing: 1px;
+    }
+
+    .footer {
+      margin-top: 16px;
+      font-size: 10px;
+      color: rgba(255,255,255,0.25);
+      letter-spacing: 1px;
+      text-align: center;
+    }
+
+    /* Animations */
+    .fade-in {
+      animation: fadeIn 0.5s ease forwards;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="brand">
+    <div class="brand-name">TRUPAS</div>
+    <div class="brand-tagline">PRIVILEGE & CONDUCT PROGRAM</div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-view active" id="view-loading">
+    <div class="dot-pulse"><span></span><span></span><span></span></div>
+    <div class="loading-text">会員情報を確認しています...</div>
+  </div>
+
+  <!-- ===== 会員確認済み ===== -->
+  <div class="view" id="view-verified">
+    <div class="card fade-in">
+      <div class="card-header">
+        <div class="store-icon"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-4h6v4"/></svg></div>
+        <div class="store-name" id="v-store-name">---</div>
+        <div class="store-label">RESERVATION VERIFY</div>
+      </div>
+      <div class="card-body">
+        <!-- Tier Display -->
+        <div class="tier-section">
+          <div class="tier-badge" id="v-tier-badge"></div>
+          <div class="tier-name" id="v-tier-name">BRONZE</div>
+          <div class="user-name" id="v-user-name"></div>
+          <div class="verified-badge">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            TRUPAS会員 確認済み
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-row">
+          <div class="stat-item">
+            <div class="stat-value" id="v-visits">0</div>
+            <div class="stat-label">VISITS</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="v-medals-count">0</div>
+            <div class="stat-label">MEDALS</div>
+          </div>
+        </div>
+
+        <!-- Medals (compact) -->
+        <div class="medals-row" id="v-medals"></div>
+
+        <!-- Benefits for this store -->
+        <div class="benefits-section" id="v-benefits" style="display:none">
+          <div class="benefits-title">この店舗の特典 / PRIVILEGES</div>
+          <div id="v-benefits-list"></div>
+        </div>
+
+        <div class="divider"></div>
+
+        <p class="message" id="v-message">
+          TRUPAS Privilegeプランをご利用いただけます。<br>
+          このまま予約にお進みください。
+        </p>
+
+        <!-- return_url があれば予約ページに戻すボタン -->
+        <a class="btn btn-success" id="v-proceed-btn" style="display:none; margin-top:16px;" href="#">
+          予約に進む
+        </a>
+        <button class="btn btn-outline" onclick="closeLiff()" id="v-close-btn" style="margin-top:12px;">閉じる</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 未登録 ===== -->
+  <div class="view" id="view-notfound">
+    <div class="card fade-in">
+      <div class="card-header">
+        <div class="store-icon"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-4h6v4"/></svg></div>
+        <div class="store-name" id="nf-store-name">---</div>
+        <div class="store-label">RESERVATION VERIFY</div>
+      </div>
+      <div class="card-body">
+        <div class="register-section">
+          <div class="register-icon">
+            <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+          </div>
+          <div class="register-title">TRUPAS会員情報が見つかりません</div>
+          <div class="divider"></div>
+          <p class="message">
+            このプランはTRUPAS会員限定です。<br>
+            以下の手順で登録が完了します。
+          </p>
+
+          <div class="register-steps">
+            <div class="register-step">
+              <div class="step-num">1</div>
+              <div>TRUPAS LINE公式アカウントを友だち追加</div>
+            </div>
+            <div class="register-step">
+              <div class="step-num">2</div>
+              <div>店舗でQRコードをスキャンして初回チェックイン（自動で会員登録されます）</div>
+            </div>
+            <div class="register-step">
+              <div class="step-num">3</div>
+              <div>会員登録後にこのページを再度開くと、予約確認ができます</div>
+            </div>
+          </div>
+
+          <a class="btn btn-gold" id="nf-line-btn" href="https://lin.ee/6J0VGpK" target="_blank" style="margin-top:12px;">
+            LINE友だち追加
+          </a>
+          <button class="btn btn-outline" onclick="retryVerify()" style="margin-top:8px;">
+            登録済みの方：再確認
+          </button>
+          <button class="btn btn-outline" onclick="closeLiff()">閉じる</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== パラメータなし（直接アクセス） ===== -->
+  <div class="view" id="view-nostore">
+    <div class="card fade-in">
+      <div class="card-header">
+        <div class="store-icon">
+          <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <div class="store-name">TRUPAS</div>
+        <div class="store-label">RESERVATION VERIFY</div>
+      </div>
+      <div class="card-body" style="text-align:center;">
+        <p class="message">
+          この画面は、TRUPASパートナーの予約ページからアクセスしてください。<br><br>
+          パートナーの予約サイトに設置されたリンクから開くことで、会員確認が行えます。
+        </p>
+        <button class="btn btn-outline" onclick="closeLiff()" style="margin-top:20px;">閉じる</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== エラー ===== -->
+  <div class="view" id="view-error">
+    <div class="card fade-in">
+      <div class="card-header">
+        <div class="store-icon" style="border-color: var(--error); color: var(--error); background: rgba(160,64,64,0.1);">
+          <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+        </div>
+        <div class="store-name" id="err-store-name">---</div>
+        <div class="store-label">ERROR</div>
+      </div>
+      <div class="card-body" style="text-align:center;">
+        <p class="message" id="err-message">通信エラーが発生しました。<br>再度お試しください。</p>
+        <button class="btn btn-gold" onclick="location.reload()" style="margin-top:20px;">再読み込み</button>
+        <button class="btn btn-outline" onclick="closeLiff()">閉じる</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">TRUPAS &mdash; Trust, Recognized and Preserved</div>
+
+  <script>
+    // ===== 設定 =====
+    // NOTE: LIFF_IDは新規登録後に差し替え（LINE Developersで reserve-verify 用に作成）
+    // それまでは status と同じIDを仮使用可能
+    var CONFIG = {
+      LIFF_ID: '2008787040-7i6U4tdJ',
+      WEBHOOK_STATUS: 'https://hook.eu1.make.com/utmb89k86th8tih9y370cxc8kwwl8p23',
+      LINE_FRIEND_URL: 'https://lin.ee/6J0VGpK'
+    };
+
+    // ===== SVG Icons =====
+    function svgIcon(d, sw) {
+      return '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="' + (sw || 1.5) + '" stroke-linecap="round" stroke-linejoin="round">' + d + '</svg>';
+    }
+    var SVG_SHIELD = svgIcon('<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>');
+    var SVG_STAR   = svgIcon('<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14l-5-4.87 6.91-1.01z"/>');
+    var SVG_CROWN  = svgIcon('<path d="M2 20h20M4 20l2-14 4 6 2-8 2 8 4-6 2 14"/>');
+    var SVG_GEM    = svgIcon('<path d="M6 3h12l4 6-10 13L2 9z"/><path d="M2 9h20M12 22l4-13M12 22L8 9m4-6v6"/>');
+
+    var TIERS = [
+      { name: 'Bronze', icon: SVG_SHIELD, cssClass: 'bronze' },
+      { name: 'Silver', icon: SVG_STAR, cssClass: 'silver' },
+      { name: 'Gold', icon: SVG_CROWN, cssClass: 'gold' },
+      { name: 'Platinum', icon: SVG_GEM, cssClass: 'platinum' }
+    ];
+
+    var MEDAL_DATA = {
+      'Courteous':   { icon: svgIcon('<path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>'), ja: '礼儀正しい' },
+      'Considerate': { icon: svgIcon('<path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>'), ja: '思いやり' },
+      'Punctual':    { icon: svgIcon('<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>'), ja: '時間厳守' },
+      'Pristine':    { icon: svgIcon('<path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5z"/><path d="M19 13l.8 2.2L22 16l-2.2.8L19 19l-.8-2.2L16 16l2.2-.8z"/>'), ja: '清潔' },
+      'Gentle':      { icon: svgIcon('<path d="M20.24 12.24a6 6 0 00-8.49-8.49L5 10.5V19h8.5z"/><path d="M16 8L2 22M17.5 15H9"/>'), ja: '穏やか' },
+      'Selfless':    { icon: svgIcon('<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>'), ja: '無私の心' },
+      'Gracious':    { icon: svgIcon('<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14l-5-4.87 6.91-1.01z"/>'), ja: '寛大' },
+      'Inclusive':    { icon: svgIcon('<circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>'), ja: '包容力' },
+      'Reliable':    { icon: svgIcon('<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>'), ja: '信頼できる' },
+      'Transparent': { icon: svgIcon('<path d="M12 2l10 10-10 10L2 12z"/>'), ja: '誠実' },
+      'Consistent':  { icon: svgIcon('<polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>'), ja: '一貫性' },
+      'Accountable': { icon: svgIcon('<polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>'), ja: '責任感' },
+      'Attentive':   { icon: svgIcon('<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>'), ja: '気配り' },
+      'Empathetic':  { icon: svgIcon('<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0016.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 002 8.5c0 2.3 1.5 4.05 3 5.5l7 7z"/>'), ja: '共感力' },
+      'Nurturing':   { icon: svgIcon('<path d="M7 20h10M12 20c5.5-2.5.8-6.4 3-10"/><path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z"/><path d="M14.1 6a7 7 0 00-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z"/>'), ja: '育む心' }
+    };
+
+    var TIER_KEYS = ['bronze', 'silver', 'gold', 'platinum'];
+    var TIER_LABELS = ['Bronze', 'Silver', 'Gold', 'Platinum'];
+
+    // ===== State =====
+    var storeId = '';
+    var storeName = '';
+    var returnUrl = '';
+
+    // ===== View Control =====
+    function switchView(id) {
+      var views = ['view-loading', 'view-verified', 'view-notfound', 'view-nostore', 'view-error'];
+      views.forEach(function(v) {
+        var el = document.getElementById(v);
+        if (el) el.classList.remove('active');
+      });
+      var target = document.getElementById(id);
+      if (target) target.classList.add('active');
+    }
+
+    // ===== Tier helpers =====
+    function getTierIndex(tierName) {
+      for (var i = 0; i < TIERS.length; i++) {
+        if (TIERS[i].name === tierName) return i;
+      }
+      return 0;
+    }
+
+    // ===== Render: Verified Member =====
+    function renderVerified(data) {
+      var user = data.user;
+      var tierName = user.tier || 'Bronze';
+      var tierIndex = getTierIndex(tierName);
+      var tierInfo = TIERS[tierIndex];
+      var visits = user.visit_count || 0;
+      var medals = user.medals || (user.medals_csv ? user.medals_csv.split(',') : []);
+
+      // Store name
+      document.getElementById('v-store-name').textContent = storeName;
+
+      // Tier badge
+      var badge = document.getElementById('v-tier-badge');
+      badge.innerHTML = tierInfo.icon;
+      badge.className = 'tier-badge ' + tierInfo.cssClass;
+      document.getElementById('v-tier-name').textContent = tierInfo.name.toUpperCase();
+
+      // User name
+      document.getElementById('v-user-name').textContent = user.display_name || 'Guest';
+
+      // Stats
+      document.getElementById('v-visits').textContent = visits;
+      document.getElementById('v-medals-count').textContent = medals.length;
+
+      // Medals (compact chips)
+      var medalsRow = document.getElementById('v-medals');
+      medalsRow.innerHTML = '';
+      if (medals.length > 0) {
+        medals.forEach(function(m) {
+          var md = MEDAL_DATA[m] || { icon: svgIcon('<circle cx="12" cy="12" r="8"/>'), ja: m };
+          var chip = document.createElement('span');
+          chip.className = 'medal-chip';
+          chip.innerHTML = '<span class="m-icon">' + md.icon + '</span>' + md.ja;
+          medalsRow.appendChild(chip);
+        });
+      }
+
+      // Benefits for this store
+      var stores = data.stores || [];
+      var thisStore = null;
+      for (var i = 0; i < stores.length; i++) {
+        if (stores[i].store_id === storeId) { thisStore = stores[i]; break; }
+      }
+      if (thisStore) {
+        var hasBenefits = thisStore.bronze_benefit || thisStore.silver_benefit || thisStore.gold_benefit || thisStore.platinum_benefit;
+        if (hasBenefits) {
+          var list = document.getElementById('v-benefits-list');
+          list.innerHTML = '';
+          TIER_KEYS.forEach(function(key, idx) {
+            var text = thisStore[key + '_benefit'];
+            if (!text) return;
+            var isUnlocked = idx <= tierIndex;
+            var row = document.createElement('div');
+            row.className = 'benefit-row';
+            row.innerHTML =
+              '<div class="benefit-dot ' + (isUnlocked ? key : 'locked') + '"></div>' +
+              '<div class="benefit-label">' + TIER_LABELS[idx] + '</div>' +
+              '<div class="benefit-text' + (isUnlocked ? '' : ' locked') + '">' +
+                (isUnlocked ? text : '\u{1F512} ' + TIER_LABELS[idx] + 'で解放') +
+              '</div>';
+            list.appendChild(row);
+          });
+          document.getElementById('v-benefits').style.display = 'block';
+        }
+      }
+
+      // Message
+      var msg = storeName + ' のTRUPAS Privilegeプランを<br>ご利用いただけます。';
+      if (returnUrl) {
+        msg += '<br>このまま予約にお進みください。';
+      }
+      document.getElementById('v-message').innerHTML = msg;
+
+      // Return URL button
+      if (returnUrl) {
+        var proceedBtn = document.getElementById('v-proceed-btn');
+        proceedBtn.href = returnUrl;
+        proceedBtn.style.display = 'block';
+        document.getElementById('v-close-btn').textContent = '閉じる';
+      } else {
+        document.getElementById('v-close-btn').textContent = '確認完了 — 閉じる';
+      }
+
+      switchView('view-verified');
+    }
+
+    // ===== Render: Not Found =====
+    function renderNotFound() {
+      document.getElementById('nf-store-name').textContent = storeName || 'TRUPAS';
+      // LINE friend URL
+      if (CONFIG.LINE_FRIEND_URL && CONFIG.LINE_FRIEND_URL !== 'https://lin.ee/6J0VGpK') {
+        document.getElementById('nf-line-btn').href = CONFIG.LINE_FRIEND_URL;
+      }
+      switchView('view-notfound');
+    }
+
+    // ===== Retry =====
+    function retryVerify() {
+      switchView('view-loading');
+      init();
+    }
+
+    // ===== Close LIFF =====
+    function closeLiff() {
+      if (typeof liff !== 'undefined' && liff.isInClient && liff.isInClient()) {
+        liff.closeWindow();
+      } else {
+        window.close();
+      }
+    }
+
+    // ===== Main Init =====
+    async function init() {
+      try {
+        var isDebug = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+
+        // LIFF init (パラメータ取得はinit後)
+        if (!isDebug) {
+          await liff.init({ liffId: CONFIG.LIFF_ID });
+          if (!liff.isLoggedIn()) {
+            liff.login({ redirectUri: window.location.href });
+            return;
+          }
+        }
+
+        // URL parameters
+        var params = new URLSearchParams(window.location.search);
+        storeId = params.get('store_id') || '';
+        storeName = decodeURIComponent(params.get('store_name') || '');
+        returnUrl = params.get('return_url') || '';
+
+        // store_idなし → 直接アクセス案内
+        if (!storeId) {
+          switchView('view-nostore');
+          return;
+        }
+
+        // LINE UID取得
+        var lineUid = '';
+        if (isDebug) {
+          lineUid = 'U_debug_user_001';
+        } else {
+          var profile = await liff.getProfile();
+          lineUid = profile.userId;
+        }
+
+        // Debug mode: mock data
+        if (isDebug) {
+          renderVerified({
+            user: {
+              found: true,
+              display_name: 'テストユーザー',
+              tier: 'Gold',
+              visit_count: 12,
+              medals: ['Courteous', 'Considerate', 'Punctual', 'Pristine']
+            },
+            stores: [
+              {
+                store_id: storeId,
+                store_name: storeName || 'テスト店舗',
+                bronze_benefit: 'ウェルカムドリンクをサービス',
+                silver_benefit: 'レイトチェックアウト（+1時間）',
+                gold_benefit: 'お部屋のアップグレード（空室時）',
+                platinum_benefit: 'スイートルーム優先案内'
+              }
+            ]
+          });
+          return;
+        }
+
+        // Fetch status from existing webhook
+        var res = await fetch(CONFIG.WEBHOOK_STATUS, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ line_uid: lineUid })
+        });
+
+        if (!res.ok) throw new Error('Server error: ' + res.status);
+
+        var data = await res.json();
+
+        if (!data.user || !data.user.found) {
+          renderNotFound();
+          return;
+        }
+
+        // Use LINE profile name if needed
+        if (!isDebug && (!data.user.display_name || data.user.display_name === 'ゲスト')) {
+          var prof = await liff.getProfile();
+          data.user.display_name = prof.displayName;
+        }
+
+        renderVerified(data);
+
+      } catch (err) {
+        console.error('Init error:', err);
+        document.getElementById('err-store-name').textContent = storeName || 'TRUPAS';
+        document.getElementById('err-message').innerHTML = '会員情報の取得に失敗しました。<br>再度お試しください。';
+        switchView('view-error');
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>
