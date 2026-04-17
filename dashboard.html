@@ -226,6 +226,27 @@
     }
     .settings-note strong { color: var(--navy); }
 
+    /* 通知設定 */
+    .notify-section { margin-top: 28px; }
+    .notify-group { margin-bottom: 16px; }
+    .notify-label {
+      font-size: 12px; font-weight: 700; color: var(--navy);
+      margin-bottom: 6px; display: block;
+    }
+    .notify-select {
+      width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px;
+      font-size: 14px; font-family: inherit; background: #fff;
+      color: var(--text); appearance: auto;
+    }
+    .notify-input {
+      width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px;
+      font-size: 14px; font-family: inherit; box-sizing: border-box;
+    }
+    .notify-input:disabled { background: #f5f5f5; color: #aaa; }
+    .notify-hint {
+      font-size: 11px; color: var(--text-sub); margin-top: 4px; line-height: 1.5;
+    }
+
     .footer { text-align: center; padding: 24px; font-size: 10px; color: #bbb; letter-spacing: 1px; }
   </style>
 </head>
@@ -376,6 +397,33 @@
             <div class="benefit-hint">最も信頼されたゲストへの最上級の体験</div>
           </div>
 
+          <div class="notify-section">
+            <div class="section-header" style="margin-top:8px;">
+              <div class="section-title">予約確認通知の設定</div>
+              <div class="form-sub" style="margin:0">Notification</div>
+            </div>
+
+            <div class="settings-note">
+              ゲストが予約時にTRUPAS会員確認を行った際の通知方法を設定します。
+            </div>
+
+            <div class="notify-group">
+              <label class="notify-label">通知方法</label>
+              <select class="notify-select" id="notify-method" onchange="toggleNotifyEmail()">
+                <option value="line">LINE通知のみ</option>
+                <option value="email">メール通知のみ</option>
+                <option value="both">LINE＋メール両方</option>
+              </select>
+              <div class="notify-hint">LINEはホストのLINEアカウントに、メールは下記アドレスに届きます</div>
+            </div>
+
+            <div class="notify-group" id="notify-email-group">
+              <label class="notify-label">通知先メールアドレス</label>
+              <input type="email" class="notify-input" id="notify-email" placeholder="info@example.com">
+              <div class="notify-hint">予約確認通知の送信先です。パートナーのご担当者メールを設定してください</div>
+            </div>
+          </div>
+
           <button class="btn btn-gold" id="save-settings-btn" onclick="saveSettings()">設定を保存</button>
           <div class="result-msg" id="settings-result-msg"></div>
         </div>
@@ -442,6 +490,12 @@
         document.getElementById('benefit-silver').value = (data.silver_benefit || '').replace(/\\n/g, '\n');
         document.getElementById('benefit-gold').value = (data.gold_benefit || '').replace(/\\n/g, '\n');
         document.getElementById('benefit-platinum').value = (data.platinum_benefit || '').replace(/\\n/g, '\n');
+
+        // 通知設定を反映
+        var method = data.notification_method || 'line';
+        document.getElementById('notify-method').value = method;
+        document.getElementById('notify-email').value = data.notification_email || '';
+        toggleNotifyEmail();
 
         // 認証成功 → メイン画面表示
         document.getElementById('header').style.display = 'flex';
@@ -586,8 +640,34 @@
       }
     }
 
+    // 通知メール欄の表示/非表示
+    function toggleNotifyEmail() {
+      var method = document.getElementById('notify-method').value;
+      var emailGroup = document.getElementById('notify-email-group');
+      var emailInput = document.getElementById('notify-email');
+      if (method === 'line') {
+        emailGroup.style.opacity = '0.4';
+        emailInput.disabled = true;
+      } else {
+        emailGroup.style.opacity = '1';
+        emailInput.disabled = false;
+      }
+    }
+
     // 店舗設定を保存
     async function saveSettings() {
+      var method = document.getElementById('notify-method').value;
+      var email = document.getElementById('notify-email').value.trim();
+
+      // メール必須チェック
+      if ((method === 'email' || method === 'both') && !email) {
+        var msg = document.getElementById('settings-result-msg');
+        msg.className = 'result-msg error';
+        msg.textContent = 'メール通知を選択した場合、メールアドレスの入力が必要です。';
+        msg.style.display = 'block';
+        return;
+      }
+
       var btn = document.getElementById('save-settings-btn');
       btn.disabled = true;
       btn.textContent = '保存中...';
@@ -598,7 +678,9 @@
         bronze_benefit: document.getElementById('benefit-bronze').value.trim(),
         silver_benefit: document.getElementById('benefit-silver').value.trim(),
         gold_benefit: document.getElementById('benefit-gold').value.trim(),
-        platinum_benefit: document.getElementById('benefit-platinum').value.trim()
+        platinum_benefit: document.getElementById('benefit-platinum').value.trim(),
+        notification_method: method,
+        notification_email: email
       };
 
       try {
