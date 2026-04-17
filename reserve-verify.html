@@ -654,7 +654,7 @@
             store_name: storeName,
             guest_name: guestName,
             tier: tier,
-            medals: medals.join(', '),
+            medals: medals.map(function(m) { return (MEDAL_DATA[m] || {}).ja || m; }).join(', '),
             verify_code: code,
             verified_at: new Date().toISOString()
           })
