@@ -243,6 +243,35 @@
       opacity: 0.5;
     }
 
+    /* Verification Code */
+    .verify-code-section {
+      margin-top: 16px;
+      padding: 16px;
+      background: var(--ivory);
+      border-radius: 10px;
+      text-align: center;
+    }
+    .verify-code-label {
+      font-size: 10px;
+      color: var(--text-sub);
+      letter-spacing: 2px;
+      margin-bottom: 8px;
+    }
+    .verify-code {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--navy);
+      letter-spacing: 4px;
+      font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
+      padding: 8px 0;
+    }
+    .verify-code-hint {
+      font-size: 11px;
+      color: var(--text-sub);
+      margin-top: 6px;
+      line-height: 1.5;
+    }
+
     /* Buttons */
     .btn {
       display: block;
@@ -444,6 +473,13 @@
           <div id="v-benefits-list"></div>
         </div>
 
+        <!-- Verification Code -->
+        <div class="verify-code-section" id="v-code-section">
+          <div class="verify-code-label">確認コード / VERIFICATION CODE</div>
+          <div class="verify-code" id="v-code">---</div>
+          <div class="verify-code-hint">予約時の備考欄にこのコードをご入力ください</div>
+        </div>
+
         <div class="divider"></div>
 
         <p class="message" id="v-message">
@@ -554,6 +590,7 @@
     var CONFIG = {
       LIFF_ID: '2008787040-7i6U4tdJ',
       WEBHOOK_STATUS: 'https://hook.eu1.make.com/utmb89k86th8tih9y370cxc8kwwl8p23',
+      WEBHOOK_NOTIFY: '',  // Make側で作成後にURLを設定
       LINE_FRIEND_URL: 'https://lin.ee/6J0VGpK'
     };
 
@@ -593,6 +630,37 @@
 
     var TIER_KEYS = ['bronze', 'silver', 'gold', 'platinum'];
     var TIER_LABELS = ['Bronze', 'Silver', 'Gold', 'Platinum'];
+
+    // ===== Verification Code =====
+    function generateVerifyCode() {
+      // Format: TV-MMDD-XXXX (TV=TRUPAS Verify, MMDD=date, XXXX=random hex)
+      var now = new Date();
+      var mm = String(now.getMonth() + 1).padStart(2, '0');
+      var dd = String(now.getDate()).padStart(2, '0');
+      var hex = Math.random().toString(16).substring(2, 6).toUpperCase();
+      return 'TV-' + mm + dd + '-' + hex;
+    }
+
+    // ===== Notify Partner =====
+    function sendNotification(guestName, tier, medals, code) {
+      if (!CONFIG.WEBHOOK_NOTIFY) return; // URLが未設定なら何もしない
+      // 非同期で送信（結果を待たない・失敗しても画面に影響しない）
+      try {
+        fetch(CONFIG.WEBHOOK_NOTIFY, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            store_id: storeId,
+            store_name: storeName,
+            guest_name: guestName,
+            tier: tier,
+            medals: medals.join(', '),
+            verify_code: code,
+            verified_at: new Date().toISOString()
+          })
+        }).catch(function() {}); // エラーは無視
+      } catch (e) {}
+    }
 
     // ===== State =====
     var storeId = '';
@@ -684,6 +752,13 @@
           document.getElementById('v-benefits').style.display = 'block';
         }
       }
+
+      // Verification Code
+      var verifyCode = generateVerifyCode();
+      document.getElementById('v-code').textContent = verifyCode;
+
+      // Send notification to partner (non-blocking)
+      sendNotification(user.display_name || 'Guest', tierName, medals, verifyCode);
 
       // Message
       var msg = storeName + ' のTRUPAS Privilegeプランを<br>ご利用いただけます。';
