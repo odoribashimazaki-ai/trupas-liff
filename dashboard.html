@@ -197,6 +197,13 @@
     .refresh-btn:hover { background: rgba(201,169,110,0.1); }
 
     /* 店舗設定タブ */
+    .benefit-principles { background:#fffbf0; border:1px solid #f0e6cc; border-radius:8px; padding:12px 14px; font-size:12.5px; color:#444; line-height:1.8; margin-bottom:14px; }
+    .benefit-cat-row { display:flex; align-items:center; gap:10px; margin-bottom:14px; font-size:13px; color:#333; }
+    .benefit-cat-select { flex:1; padding:8px 10px; border:1px solid #ddd; border-radius:6px; font-size:13px; background:#fff; }
+    .benefit-options { display:flex; flex-direction:column; gap:6px; margin:6px 0 8px; }
+    .benefit-option { display:flex; align-items:center; gap:8px; font-size:13px; color:#333; cursor:pointer; }
+    .benefit-option input { width:16px; height:16px; }
+    .benefit-other-label { font-size:11.5px; color:#888; margin:4px 0 2px; }
     .benefit-item {
       margin-bottom: 20px; padding: 16px; background: var(--ivory);
       border-radius: 10px; border: 1px solid #f0ebe3;
@@ -369,33 +376,26 @@
           </div>
 
           <div class="settings-note">
-            <strong>ティア別特典を設定しましょう。</strong><br>
-            ゲストがTRUPASのマイステータス画面で確認できる特典内容を設定します。特典を設定するとゲストのリピート意欲が向上します。
+            <strong>ティア別の優待を選んで設定しましょう。</strong><br>
+            ゲストのマイステータス画面に表示されます。業種を選ぶと候補が出るので、当てはまるものにチェックを入れ、必要なら「その他」に自由に追記してください。
           </div>
 
-          <div class="benefit-item">
-            <div class="benefit-tier-label"><span class="tier-dot bronze"></span> Bronze</div>
-            <textarea class="benefit-textarea" id="benefit-bronze" placeholder="例: ウェルカムドリンクをサービス"></textarea>
-            <div class="benefit-hint">全ゲストが最初に到達するティアです</div>
+          <div class="benefit-principles">
+            <div>・<strong>Bronze</strong>には、実績を受け取ってすぐ使える優待を1つ以上ご用意ください。</div>
+            <div>・候補にないものは「その他」に自由にご記入ください（クーポン、繁忙日の停止、「1日◯件まで」などの条件も）。</div>
           </div>
 
-          <div class="benefit-item">
-            <div class="benefit-tier-label"><span class="tier-dot silver"></span> Silver</div>
-            <textarea class="benefit-textarea" id="benefit-silver" placeholder="例: デザート1品サービス / レイトチェックアウト30分延長"></textarea>
-            <div class="benefit-hint">リピーターへの感謝を形にしましょう</div>
+          <div class="benefit-cat-row">
+            <label for="benefit-cat">業種テンプレート</label>
+            <select id="benefit-cat" class="benefit-cat-select">
+              <option value="lodging">宿泊（旅館・民泊・ホテル）</option>
+              <option value="restaurant">飲食（レストラン・カフェ）</option>
+              <option value="space">レンタルスペース</option>
+              <option value="other">体験・その他</option>
+            </select>
           </div>
 
-          <div class="benefit-item">
-            <div class="benefit-tier-label"><span class="tier-dot gold"></span> Gold</div>
-            <textarea class="benefit-textarea" id="benefit-gold" placeholder="例: お部屋アップグレード / 特別メニューのご案内"></textarea>
-            <div class="benefit-hint">常連ゲストへの特別なおもてなし</div>
-          </div>
-
-          <div class="benefit-item">
-            <div class="benefit-tier-label"><span class="tier-dot platinum"></span> Platinum</div>
-            <textarea class="benefit-textarea" id="benefit-platinum" placeholder="例: スイートルーム優先案内 / シェフ特別コース"></textarea>
-            <div class="benefit-hint">最も信頼されたゲストへの最上級の体験</div>
-          </div>
+          <div id="benefit-catalog"></div>
 
           <div class="notify-section">
             <div class="section-header" style="margin-top:8px;">
@@ -435,6 +435,102 @@
   <div class="footer">TRUPAS — Host Dashboard</div>
 
   <script>
+    // ===== 優待カタログ =====
+    var BENEFIT_TIERS = [
+      { key:'bronze',   label:'Bronze',   hint:'全ゲストが最初に到達するティア。引き取ってすぐ使える優待を1つ' },
+      { key:'silver',   label:'Silver',   hint:'丁寧な過ごし方が続いている方へ' },
+      { key:'gold',     label:'Gold',     hint:'実績のある常連の方へ' },
+      { key:'platinum', label:'Platinum', hint:'最も信頼されたゲストへの最上級の優待' }
+    ];
+    var BENEFIT_PRESETS = {
+      lodging: {
+        bronze:   ['レイトチェックアウト30分','アーリーチェックイン30分','ウェルカムドリンク'],
+        silver:   ['空室・季節の先行案内','お部屋の希望を優先','連泊時の清掃時間の希望優先'],
+        gold:     ['空室時のお部屋アップグレード','レイトチェックアウト1時間','限定プランの先行案内'],
+        platinum: ['一般公開前の優先予約枠','繁忙期の優先確保','特別プラン・体験へのご招待']
+      },
+      restaurant: {
+        bronze:   ['混雑時の席の優先案内','席の希望を優先（窓際・カウンター等）','ワンドリンクサービス'],
+        silver:   ['新メニューの先行案内','予約枠の優先確保','ラストオーダー延長'],
+        gold:     ['限定メニューの先行提供','人気日の予約優先','裏メニューのご案内'],
+        platinum: ['貸切・イベントの先行枠','シェフ特別コースへのご招待','記念日の特別対応']
+      },
+      space: {
+        bronze:   ['利用時間15分延長','チェックイン手続きの簡略化','備品の無料貸出'],
+        silver:   ['人気時間帯の先行案内','連続予約の優先','延長料金の優遇'],
+        gold:     ['キャンセル待ちの優先案内','清掃・備品リクエスト対応','長時間利用の優遇'],
+        platinum: ['定期利用枠の優先確保','新スペース・イベントの先行枠','特別設備の利用']
+      },
+      other: {
+        bronze:   ['開始時間の希望優先','ウェルカムドリンク','参加特典のささやかなおまけ'],
+        silver:   ['新プログラムの先行案内','少人数枠の優先','延長対応'],
+        gold:     ['限定プログラムの先行提供','繁忙日の優先枠','記念品'],
+        platinum: ['貸切・特別回へのご招待','新企画の先行枠','特別対応']
+      }
+    };
+    var BENEFIT_SEP = ' / ';
+    var benefitRaw = { bronze:'', silver:'', gold:'', platinum:'' };
+
+    function allPresetLabels() {
+      var set = {};
+      Object.keys(BENEFIT_PRESETS).forEach(function(c){ Object.keys(BENEFIT_PRESETS[c]).forEach(function(t){ BENEFIT_PRESETS[c][t].forEach(function(l){ set[l]=true; }); }); });
+      return set;
+    }
+
+    function renderBenefitCatalog() {
+      var cat = document.getElementById('benefit-cat').value;
+      var presets = BENEFIT_PRESETS[cat] || BENEFIT_PRESETS.other;
+      var known = allPresetLabels();
+      var wrap = document.getElementById('benefit-catalog');
+      wrap.innerHTML = '';
+      BENEFIT_TIERS.forEach(function(t) {
+        var parts = (benefitRaw[t.key] || '').split(BENEFIT_SEP).map(function(x){ return x.trim(); }).filter(Boolean);
+        var selected = {}; var others = [];
+        parts.forEach(function(p){ if (known[p]) selected[p]=true; else others.push(p); });
+        var item = document.createElement('div'); item.className = 'benefit-item';
+        var html = '<div class="benefit-tier-label"><span class="tier-dot '+t.key+'"></span> '+t.label+'</div>';
+        html += '<div class="benefit-options">';
+        presets[t.key].forEach(function(label, i) {
+          var id = 'bp-'+t.key+'-'+i;
+          html += '<label class="benefit-option"><input type="checkbox" id="'+id+'" data-tier="'+t.key+'" value="'+label+'"'+(selected[label]?' checked':'')+'> '+label+'</label>';
+        });
+        // 選択中だが現在の業種テンプレにない項目も残す
+        Object.keys(selected).forEach(function(label){
+          if (presets[t.key].indexOf(label) === -1) {
+            html += '<label class="benefit-option"><input type="checkbox" data-tier="'+t.key+'" value="'+label+'" checked> '+label+'</label>';
+          }
+        });
+        html += '</div>';
+        html += '<div class="benefit-other-label">その他（自由記述）</div>';
+        html += '<textarea class="benefit-textarea" id="benefit-'+t.key+'" placeholder="例: 記念日のデザート / 繁忙日は対象外 / 1日3組まで">'+others.join(BENEFIT_SEP).replace(/</g,'&lt;')+'</textarea>';
+        html += '<div class="benefit-hint">'+t.hint+'</div>';
+        item.innerHTML = html;
+        wrap.appendChild(item);
+      });
+    }
+
+    function collectBenefit(tierKey) {
+      var vals = [];
+      document.querySelectorAll('#benefit-catalog input[data-tier="'+tierKey+'"]:checked').forEach(function(cb){ vals.push(cb.value); });
+      var other = (document.getElementById('benefit-'+tierKey).value || '').trim();
+      if (other) vals.push(other);
+      return vals.join(BENEFIT_SEP);
+    }
+
+    function syncBenefitRawFromUI() {
+      BENEFIT_TIERS.forEach(function(t){ benefitRaw[t.key] = collectBenefit(t.key); });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      var sel = document.getElementById('benefit-cat');
+      if (!sel) return;
+      sel.addEventListener('change', function() {
+        syncBenefitRawFromUI();
+        try { localStorage.setItem('trupas_benefit_cat_' + (storeId || ''), sel.value); } catch(e) {}
+        renderBenefitCatalog();
+      });
+    });
+
     var CONFIG = {
       WEBHOOK_PENDING: 'https://hook.eu1.make.com/iawho5k6hqhyn5fhfpev6vuc63o7xcza',
       WEBHOOK_REVIEW: 'https://hook.eu1.make.com/us5gsclkvxko9xcexlp1etbea3ixln9r',
@@ -485,11 +581,13 @@
         storeName = data.store_name || storeId;
         visits = data.visits || [];
 
-        // 特典データをフォームに反映
-        document.getElementById('benefit-bronze').value = (data.bronze_benefit || '').replace(/\\n/g, '\n');
-        document.getElementById('benefit-silver').value = (data.silver_benefit || '').replace(/\\n/g, '\n');
-        document.getElementById('benefit-gold').value = (data.gold_benefit || '').replace(/\\n/g, '\n');
-        document.getElementById('benefit-platinum').value = (data.platinum_benefit || '').replace(/\\n/g, '\n');
+        // 特典データをカタログUIに反映
+        benefitRaw.bronze   = (data.bronze_benefit   || '').replace(/\\n/g, ' ');
+        benefitRaw.silver   = (data.silver_benefit   || '').replace(/\\n/g, ' ');
+        benefitRaw.gold     = (data.gold_benefit     || '').replace(/\\n/g, ' ');
+        benefitRaw.platinum = (data.platinum_benefit || '').replace(/\\n/g, ' ');
+        try { var savedCat = localStorage.getItem('trupas_benefit_cat_' + storeId); if (savedCat) document.getElementById('benefit-cat').value = savedCat; } catch(e) {}
+        renderBenefitCatalog();
 
         // 通知設定を反映
         var method = data.notification_method || 'line';
@@ -675,10 +773,10 @@
       var payload = {
         store_id: storeId,
         staff_token: staffToken,
-        bronze_benefit: document.getElementById('benefit-bronze').value.trim(),
-        silver_benefit: document.getElementById('benefit-silver').value.trim(),
-        gold_benefit: document.getElementById('benefit-gold').value.trim(),
-        platinum_benefit: document.getElementById('benefit-platinum').value.trim(),
+        bronze_benefit: collectBenefit('bronze'),
+        silver_benefit: collectBenefit('silver'),
+        gold_benefit: collectBenefit('gold'),
+        platinum_benefit: collectBenefit('platinum'),
         notification_method: method,
         notification_email: email
       };
